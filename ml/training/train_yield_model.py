@@ -1,73 +1,123 @@
+"""
+Yield Model Trainer Module for Smart Farmer Assistant.
+
+Trains 4 machine learning regression algorithms:
+1. Linear Regression
+2. Random Forest Regressor
+3. Gradient Boosting Regressor
+4. Decision Tree Regressor
+
+Performs feature encoding, standard scaling, model cross-validation,
+evaluation (R2 Score, Mean Absolute Error, Root Mean Squared Error),
+model comparison, and joblib serialization.
+"""
+
+from typing import Dict, Any, Tuple, List, Optional
 import os
-import joblib
 import pandas as pd
-from sklearn.model_selection import train_test_split
+import numpy as np
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+import joblib
+import logging
 
-from ml.evaluation.metrics_evaluator import evaluate_regression_model
+from ml.data_engineering.dataset_loader import DatasetLoader
+from ml.data_engineering.dataset_cleaner import DatasetCleaner
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATASET_PATH = os.path.join(BASE_DIR, 'datasets', 'yield_prediction.csv')
-MODEL_DIR = os.path.join(BASE_DIR, 'models')
-os.makedirs(MODEL_DIR, exist_ok=True)
+logger = logging.getLogger(__name__)
 
-def train_and_select_yield_model():
-    """Train regression candidate models for crop yield prediction."""
-    print("Loading crop yield dataset...")
-    df = pd.read_csv(DATASET_PATH)
 
-    X = df.drop(columns=['yield_tons'])
-    y = df['yield_tons']
+class YieldModelTrainer:
+    """
+    Trains, evaluates, and persists multi-model offline crop yield regression models.
+    """
 
-    categorical_features = ['crop', 'soil_type']
-    numerical_features = ['area_acres', 'nitrogen', 'phosphorus', 'potassium', 'ph', 'temperature', 'rainfall', 'irrigation_liters', 'fertilizer_kg']
+    def __init__(self, data_dir: Optional[str] = None, model_dir: Optional[str] = None):
+        self.data_loader = DatasetLoader(data_dir=data_dir)
+        self.cleaner = DatasetCleaner()
+        self.model_dir = model_dir or os.path.join(os.getcwd(), "ml", "models")
+        os.makedirs(self.model_dir, exist_ok=True)
 
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', StandardScaler(), numerical_features),
-            ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
-        ]
-    )
+    def train_all_models(self) -> Dict[str, Any]:
+        """
+        Loads yield dataset, encodes crop strings, trains 4 regressor algorithms,
+        evaluates R2 and RMSE, selects best model, and saves joblib artifact.
+        """
+        df = self.data_loader.load_yield_dataset()
+        df = self.cleaner.remove_duplicates(df)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        le = LabelEncoder()
+        df["crop_encoded"] = le.fit_transform(df["crop_name"].astype(str))
 
-    candidates = {
-        'Linear Regression': LinearRegression(),
-        'Decision Tree Regressor': DecisionTreeRegressor(random_state=42),
-        'Random Forest Regressor': RandomForestRegressor(n_estimators=100, random_state=42),
-        'Gradient Boosting Regressor': GradientBoostingRegressor(random_state=42)
-    }
+        feature_cols = ["crop_encoded", "rainfall_mm", "pesticides_tonnes", "avg_temp"]
+        X = df[feature_cols].values
+        y = df["yield_per_acre"].values
 
-    best_model_name = None
-    best_pipeline = None
-    best_r2 = -float('inf')
-    comparison_results = {}
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    for name, model in candidates.items():
-        pipeline = Pipeline(steps=[('preprocessor', preprocessor), ('regressor', model)])
-        pipeline.fit(X_train, y_train)
-        y_pred = pipeline.predict(X_test)
-        metrics = evaluate_regression_model(y_test, y_pred)
-        comparison_results[name] = metrics
-        print(f"Regressor: {name:30s} | R2: {metrics['r2_score']:.4f} | RMSE: {metrics['rmse']:.4f}")
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
 
-        if metrics['r2_score'] > best_r2:
-            best_r2 = metrics['r2_score']
-            best_model_name = name
-            best_pipeline = pipeline
+        regressors = {
+            "RandomForestRegressor": RandomForestRegressor(n_estimators=100, random_state=42),
+            "GradientBoostingRegressor": GradientBoostingRegressor(n_estimators=100, random_state=42),
+            "DecisionTreeRegressor": DecisionTreeRegressor(max_depth=8, random_state=42),
+            "LinearRegression": LinearRegression()
+        }
 
-    print(f"\nWinner Regressor: {best_model_name} with R2 Score: {best_r2:.4f}")
+        results = {}
+        best_model_name = None
+        best_r2 = -999.0
+        best_model_obj = None
 
-    joblib.dump(best_pipeline, os.path.join(MODEL_DIR, 'yield_model.joblib'))
-    joblib.dump(comparison_results, os.path.join(MODEL_DIR, 'yield_model_comparison.joblib'))
+        for name, reg in regressors.items():
+            reg.fit(X_train_scaled, y_train)
+            y_pred = reg.predict(X_test_scaled)
 
-    print(f"Yield prediction model saved to {MODEL_DIR}")
-    return comparison_results
+            r2 = r2_score(y_test, y_pred)
+            mae = mean_absolute_error(y_test, y_pred)
+            rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+            cv_r2 = cross_val_score(reg, X_train_scaled, y_train, cv=5, scoring="r2")
 
-if __name__ == '__main__':
-    train_and_select_yield_model()
+            results[name] = {
+                "r2_score": float(r2),
+                "mae": float(mae),
+                "rmse": float(rmse),
+                "cv_mean_r2": float(np.mean(cv_r2))
+            }
+
+            logger.info(f"Yield Regressor {name}: R2={r2:.4f}, MAE={mae:.4f}, RMSE={rmse:.4f}")
+
+            if r2 > best_r2:
+                best_r2 = r2
+                best_model_name = name
+                best_model_obj = reg
+
+        # Save best model and preprocessors
+        model_path = os.path.join(self.model_dir, "yield_model.joblib")
+        scaler_path = os.path.join(self.model_dir, "yield_scaler.joblib")
+        encoder_path = os.path.join(self.model_dir, "yield_crop_encoder.joblib")
+        comparison_path = os.path.join(self.model_dir, "yield_model_comparison.joblib")
+
+        joblib.dump(best_model_obj, model_path)
+        joblib.dump(scaler, scaler_path)
+        joblib.dump(le, encoder_path)
+        joblib.dump({"results": results, "best_model": best_model_name}, comparison_path)
+
+        logger.info(f"Saved best yield model '{best_model_name}' (R2: {best_r2:.4f}) to {model_path}")
+
+        return {
+            "best_model_name": best_model_name,
+            "best_r2_score": float(best_r2),
+            "model_comparison": results
+        }
+
+
+if __name__ == "__main__":
+    trainer = YieldModelTrainer()
+    trainer.train_all_models()

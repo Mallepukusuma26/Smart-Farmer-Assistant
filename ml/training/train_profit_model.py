@@ -1,46 +1,81 @@
+"""
+Profit Model Trainer Module for Smart Farmer Assistant.
+
+Trains farm profitability regressor model on financial investment parameters,
+land acreage, crop expected yield, and market commodity prices.
+"""
+
+from typing import Dict, Any, Tuple, List, Optional
 import os
-import joblib
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+import joblib
+import logging
 
-from ml.evaluation.metrics_evaluator import evaluate_regression_model
+from ml.data_engineering.dataset_loader import DatasetLoader
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATASET_PATH = os.path.join(BASE_DIR, 'datasets', 'profit_history.csv')
-MODEL_DIR = os.path.join(BASE_DIR, 'models')
-os.makedirs(MODEL_DIR, exist_ok=True)
+logger = logging.getLogger(__name__)
 
-def train_profit_model():
-    """Train Gradient Boosting regressor for farm profit prediction."""
-    print("Loading profit history dataset...")
-    df = pd.read_csv(DATASET_PATH)
 
-    X = df[['crop', 'area_acres', 'yield_tons', 'selling_price_per_ton', 'estimated_expenses', 'expected_revenue']]
-    y = df['expected_profit']
+class ProfitModelTrainer:
+    """
+    Trains and persists farm profitability regressor model.
+    """
 
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', StandardScaler(), ['area_acres', 'yield_tons', 'selling_price_per_ton', 'estimated_expenses', 'expected_revenue']),
-            ('cat', OneHotEncoder(handle_unknown='ignore'), ['crop'])
-        ]
-    )
+    def __init__(self, data_dir: Optional[str] = None, model_dir: Optional[str] = None):
+        self.data_loader = DatasetLoader(data_dir=data_dir)
+        self.model_dir = model_dir or os.path.join(os.getcwd(), "ml", "models")
+        os.makedirs(self.model_dir, exist_ok=True)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    def train_profit_model(self) -> Dict[str, Any]:
+        """
+        Loads profit history dataset, trains RandomForestRegressor, evaluates R2, and saves joblib model.
+        """
+        df = self.data_loader.load_profit_dataset()
 
-    pipeline = Pipeline(steps=[('preprocessor', preprocessor), ('regressor', GradientBoostingRegressor(random_state=42))])
-    pipeline.fit(X_train, y_train)
+        le = LabelEncoder()
+        df["crop_encoded"] = le.fit_transform(df["crop_name"].astype(str))
 
-    y_pred = pipeline.predict(X_test)
-    metrics = evaluate_regression_model(y_test, y_pred)
-    print(f"Profit Model R2 Score: {metrics['r2_score']:.4f} | RMSE: {metrics['rmse']:.4f}")
+        feature_cols = ["crop_encoded", "total_investment", "land_area_acres", "expected_yield_per_acre", "market_price"]
+        X = df[feature_cols].values
+        y = df["net_profit"].values
 
-    joblib.dump(pipeline, os.path.join(MODEL_DIR, 'profit_model.joblib'))
-    print(f"Profit prediction model saved to {MODEL_DIR}")
-    return metrics
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-if __name__ == '__main__':
-    train_profit_model()
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        reg = RandomForestRegressor(n_estimators=100, random_state=42)
+        reg.fit(X_train_scaled, y_train)
+
+        y_pred = reg.predict(X_test_scaled)
+        r2 = r2_score(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+
+        # Save artifacts
+        model_path = os.path.join(self.model_dir, "profit_model.joblib")
+        scaler_path = os.path.join(self.model_dir, "profit_scaler.joblib")
+        encoder_path = os.path.join(self.model_dir, "profit_crop_encoder.joblib")
+
+        joblib.dump(reg, model_path)
+        joblib.dump(scaler, scaler_path)
+        joblib.dump(le, encoder_path)
+
+        logger.info(f"Saved profit model (R2 Score: {r2:.4f}, MAE: {mae:.2f}) to {model_path}")
+
+        return {
+            "r2_score": float(r2),
+            "mae": float(mae),
+            "rmse": float(rmse)
+        }
+
+
+if __name__ == "__main__":
+    trainer = ProfitModelTrainer()
+    trainer.train_profit_model()

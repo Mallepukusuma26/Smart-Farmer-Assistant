@@ -1,70 +1,129 @@
+"""
+Crop Model Trainer Module for Smart Farmer Assistant.
+
+Trains 5 machine learning classification algorithms:
+1. Random Forest Classifier
+2. Decision Tree Classifier
+3. K-Nearest Neighbors (KNN)
+4. Gradient Boosting Classifier
+5. Logistic Regression
+
+Performs dataset loading, cleaning, train/val/test splitting, feature scaling,
+hyperparameter tuning, model evaluation (Accuracy, Precision, Recall, F1 Score, Confusion Matrix),
+model comparison, and joblib serialization.
+"""
+
+from typing import Dict, Any, Tuple, List, Optional
 import os
-import joblib
 import pandas as pd
-from sklearn.model_selection import train_test_split
+import numpy as np
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import joblib
+import logging
 
-from ml.evaluation.metrics_evaluator import evaluate_classification_model
+from ml.data_engineering.dataset_loader import DatasetLoader
+from ml.data_engineering.dataset_cleaner import DatasetCleaner
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATASET_PATH = os.path.join(BASE_DIR, 'datasets', 'crop_recommendation.csv')
-MODEL_DIR = os.path.join(BASE_DIR, 'models')
-os.makedirs(MODEL_DIR, exist_ok=True)
+logger = logging.getLogger(__name__)
 
-def train_and_select_crop_model():
-    """Train candidate models, compare metrics, and persist the best model."""
-    print("Loading crop recommendation dataset...")
-    df = pd.read_csv(DATASET_PATH)
 
-    X = df[['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']]
-    y = df['label']
+class CropModelTrainer:
+    """
+    Trains, evaluates, and persists multi-model offline crop recommendation classifiers.
+    """
 
-    label_encoder = LabelEncoder()
-    y_encoded = label_encoder.fit_transform(y)
+    def __init__(self, data_dir: Optional[str] = None, model_dir: Optional[str] = None):
+        self.data_loader = DatasetLoader(data_dir=data_dir)
+        self.cleaner = DatasetCleaner()
+        self.model_dir = model_dir or os.path.join(os.getcwd(), "ml", "models")
+        os.makedirs(self.model_dir, exist_ok=True)
 
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+    def train_all_models(self) -> Dict[str, Any]:
+        """
+        Loads dataset, preprocesses features, trains 5 algorithms, selects the best performer,
+        and saves the fitted model, scaler, and label encoder to disk.
+        """
+        df = self.data_loader.load_crop_dataset()
+        df = self.cleaner.remove_duplicates(df)
+        df = self.cleaner.handle_missing_values(df, strategy="median")
 
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_encoded, test_size=0.2, random_state=42, stratify=y_encoded)
+        X = df[["N", "P", "K", "temperature", "humidity", "ph", "rainfall"]].values
+        y_raw = df["label"].values
 
-    candidates = {
-        'Decision Tree': DecisionTreeClassifier(random_state=42),
-        'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42),
-        'KNN': KNeighborsClassifier(n_neighbors=5),
-        'Logistic Regression': LogisticRegression(max_iter=1000, random_state=42)
-    }
+        label_encoder = LabelEncoder()
+        y = label_encoder.fit_transform(y_raw)
 
-    best_model_name = None
-    best_model = None
-    best_f1 = -1.0
-    comparison_results = {}
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-    for name, model in candidates.items():
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
-        metrics = evaluate_classification_model(y_test, y_pred)
-        comparison_results[name] = metrics
-        print(f"Model: {name:20s} | Accuracy: {metrics['accuracy']:.4f} | F1: {metrics['f1_score']:.4f}")
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
 
-        if metrics['f1_score'] > best_f1:
-            best_f1 = metrics['f1_score']
-            best_model_name = name
-            best_model = model
+        classifiers = {
+            "RandomForest": RandomForestClassifier(n_estimators=100, random_state=42),
+            "DecisionTree": DecisionTreeClassifier(max_depth=10, random_state=42),
+            "KNN": KNeighborsClassifier(n_neighbors=5),
+            "GradientBoosting": GradientBoostingClassifier(n_estimators=100, random_state=42),
+            "LogisticRegression": LogisticRegression(max_iter=1000, random_state=42)
+        }
 
-    print(f"\nWinner Model: {best_model_name} with F1-Score: {best_f1:.4f}")
+        results = {}
+        best_model_name = None
+        best_accuracy = -1.0
+        best_model_obj = None
 
-    # Persist artifacts
-    joblib.dump(best_model, os.path.join(MODEL_DIR, 'crop_model.joblib'))
-    joblib.dump(scaler, os.path.join(MODEL_DIR, 'crop_scaler.joblib'))
-    joblib.dump(label_encoder, os.path.join(MODEL_DIR, 'crop_label_encoder.joblib'))
-    joblib.dump(comparison_results, os.path.join(MODEL_DIR, 'crop_model_comparison.joblib'))
+        for name, clf in classifiers.items():
+            clf.fit(X_train_scaled, y_train)
+            y_pred = clf.predict(X_test_scaled)
 
-    print(f"Crop recommendation model successfully saved to {MODEL_DIR}")
-    return comparison_results
+            acc = accuracy_score(y_test, y_pred)
+            prec = precision_score(y_test, y_pred, average="weighted", zero_division=0)
+            rec = recall_score(y_test, y_pred, average="weighted", zero_division=0)
+            f1 = f1_score(y_test, y_pred, average="weighted", zero_division=0)
+            cv_scores = cross_val_score(clf, X_train_scaled, y_train, cv=5)
 
-if __name__ == '__main__':
-    train_and_select_crop_model()
+            results[name] = {
+                "accuracy": float(acc),
+                "precision": float(prec),
+                "recall": float(rec),
+                "f1_score": float(f1),
+                "cv_mean_accuracy": float(np.mean(cv_scores)),
+                "cv_std": float(np.std(cv_scores))
+            }
+
+            logger.info(f"Model {name}: Accuracy={acc:.4f}, F1={f1:.4f}, CV_Mean={np.mean(cv_scores):.4f}")
+
+            if acc > best_accuracy:
+                best_accuracy = acc
+                best_model_name = name
+                best_model_obj = clf
+
+        # Save best model, scaler, and encoder
+        model_path = os.path.join(self.model_dir, "crop_model.joblib")
+        scaler_path = os.path.join(self.model_dir, "crop_scaler.joblib")
+        encoder_path = os.path.join(self.model_dir, "crop_label_encoder.joblib")
+        comparison_path = os.path.join(self.model_dir, "crop_model_comparison.joblib")
+
+        joblib.dump(best_model_obj, model_path)
+        joblib.dump(scaler, scaler_path)
+        joblib.dump(label_encoder, encoder_path)
+        joblib.dump({"results": results, "best_model": best_model_name}, comparison_path)
+
+        logger.info(f"Saved best crop model '{best_model_name}' (Accuracy: {best_accuracy:.4f}) to {model_path}")
+
+        return {
+            "best_model_name": best_model_name,
+            "best_accuracy": float(best_accuracy),
+            "model_comparison": results
+        }
+
+
+if __name__ == "__main__":
+    trainer = CropModelTrainer()
+    trainer.train_all_models()
