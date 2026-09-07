@@ -1,7 +1,13 @@
 from datetime import datetime
+import enum
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from app.extensions import db
+
+class UserRole(str, enum.Enum):
+    FARMER = 'FARMER'
+    ADMIN = 'ADMIN'
+    ADVISOR = 'ADVISOR'
 
 class Role(db.Model):
     """User authorization role entity."""

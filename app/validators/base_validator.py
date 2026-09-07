@@ -10,9 +10,10 @@ class ValidationError(Exception):
 class BaseValidator:
     """Base class for request data validation, payload sanitization, and type checking."""
 
-    def __init__(self, data: Dict[str, Any]):
+    def __init__(self, data: Optional[Dict[str, Any]] = None):
         self.data = data or {}
         self.errors: Dict[str, List[str]] = {}
+
 
     def add_error(self, field: str, message: str) -> None:
         """Add error message for field."""

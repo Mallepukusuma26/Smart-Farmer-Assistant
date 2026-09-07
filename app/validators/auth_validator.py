@@ -71,3 +71,18 @@ class PasswordResetValidator(BaseValidator):
             self.add_error('confirm_password', 'Passwords do not match.')
 
         return new_pass if self.is_valid() else None
+
+
+class AuthValidator:
+    """Unified authentication request validator."""
+
+    @staticmethod
+    def validate_login(data: Dict[str, Any]) -> Dict[str, Any]:
+        val = LoginValidator(data)
+        return val.validate()
+
+    @staticmethod
+    def validate_registration(data: Dict[str, Any]) -> Dict[str, Any]:
+        val = RegistrationValidator(data)
+        return val.validate()
+

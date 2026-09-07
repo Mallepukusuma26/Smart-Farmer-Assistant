@@ -1,45 +1,37 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required, current_user
-from app.middleware.auth_middleware import role_required
-from app.models.farmer import Farmer
-from app.models.disease import DiseaseDetection
-from app.models.soil import SoilRecord
-from app.services import NotificationService, AuditService
+"""
+Advisor Routes Blueprint for Smart Farmer Assistant.
 
-advisor_bp = Blueprint('advisor', __name__, url_prefix='/advisor')
+Maps endpoints for agricultural advisor portal, farmer case assignment, consultation advice,
+field visit logs, and expert consultation history.
+"""
 
-@advisor_bp.route('/dashboard')
-@login_required
-@role_required('ADVISOR')
+from flask import Blueprint, request
+from app.controllers.advisor_controller import AdvisorController
+from app.controllers.farmer_controller import FarmerController
+
+advisor_bp = Blueprint("advisor", __name__, url_prefix="/advisor")
+
+advisor_controller = AdvisorController()
+farmer_controller = FarmerController()
+
+
+@advisor_bp.route("/dashboard", methods=["GET"])
 def dashboard():
-    advisor = current_user.advisor_profile
-    assigned_farmers = Farmer.query.all()  # Advisory view for all active farmers
-    recent_diseases = DiseaseDetection.query.order_by(DiseaseDetection.created_at.desc()).limit(8).all()
-
-    return render_template('advisor/dashboard.html',
-                           advisor=advisor,
-                           farmers=assigned_farmers,
-                           recent_diseases=recent_diseases)
+    return advisor_controller.dashboard()
 
 
-@advisor_bp.route('/farmer/<int:farmer_id>', methods=['GET', 'POST'])
-@login_required
-@role_required('ADVISOR')
-def farmer_view(farmer_id):
-    farmer = Farmer.query.get_or_404(farmer_id)
-    farms = farmer.farms.all()
-    diseases = DiseaseDetection.query.filter_by(farmer_id=farmer.id).all()
+@advisor_bp.route("/cases", methods=["GET", "POST"])
+def list_cases():
+    if request.method == "GET":
+        return advisor_controller.list_cases()
+    return advisor_controller.create_case()
 
-    if request.method == 'POST':
-        note = request.form.get('advisory_note')
-        NotificationService.create_notification(
-            user_id=farmer.user_id,
-            title="New Agricultural Advisor Recommendation",
-            message=note,
-            category='info'
-        )
-        AuditService.log('ADVISOR_NOTE_SEND', user_id=current_user.id, target_type='Farmer', target_id=farmer.id)
-        flash('Advisory recommendation sent to farmer successfully!', 'success')
-        return redirect(url_for('advisor.farmer_view', farmer_id=farmer.id))
 
-    return render_template('advisor/farmer_view.html', farmer=farmer, farms=farms, diseases=diseases)
+@advisor_bp.route("/cases/<int:case_id>/resolve", methods=["POST"])
+def resolve_case(case_id):
+    return advisor_controller.resolve_case(case_id)
+
+
+@advisor_bp.route("/farmer/<int:farmer_id>", methods=["GET"])
+def farmer_detail(farmer_id):
+    return farmer_controller.get_farmer_detail(farmer_id)

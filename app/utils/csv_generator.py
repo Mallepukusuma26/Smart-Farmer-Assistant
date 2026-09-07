@@ -13,3 +13,5 @@ class CSVReportGenerator:
             writer.writerow(headers)
             writer.writerows(rows)
         return output_path
+
+CSVGenerator = CSVReportGenerator

@@ -10,6 +10,7 @@ class PDFReportGenerator:
 
     @staticmethod
     def generate_pdf(output_path, title, report_type, data_dict):
+
         """Generate a styled PDF document locally."""
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         doc = SimpleDocTemplate(output_path, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
@@ -81,3 +82,6 @@ class PDFReportGenerator:
 
         doc.build(story)
         return output_path
+
+PDFGenerator = PDFReportGenerator
+
