@@ -33,6 +33,48 @@
 
 ---
 
+## BUILD & INSTALLATION INSTRUCTIONS
+
+### 1. Environment & Dependency Setup
+Install dependencies using standard requirements or the pinned dependency lockfile:
+```bash
+# Using standard requirements manifest
+pip install -r requirements.txt
+
+# Using pinned dependency lockfile (recommended for deterministic builds)
+pip install -r requirements-lock.txt
+```
+
+### 2. Docker Container Build
+To build and run the application container using Docker:
+```bash
+# Build Docker image
+docker build -t smart-farmer-assistant .
+
+# Run Docker container
+docker run -p 5000:5000 smart-farmer-assistant
+```
+
+### 3. Makefile Automation
+```bash
+# Install dependencies
+make install
+
+# Seed database and train ML models
+make setup
+
+# Run application server
+make run
+
+# Run test suite
+make test
+
+# Run test suite with coverage report
+make coverage
+```
+
+---
+
 ## 100% Offline & Zero API Key Guarantee
 
 This application runs **entirely locally** without internet access once dependencies are installed. It does **NOT** require:
@@ -53,7 +95,7 @@ cd "Smart Farmer Assistent"
 
 ### 2. Install Dependencies
 ```bash
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-lock.txt
 ```
 
 ### 3. Seed Database & Train Local ML Models
@@ -86,10 +128,15 @@ Open your browser and navigate to: **`http://127.0.0.1:5000`**
 
 ---
 
-## Running Automated Tests
+## Running Automated Tests & Coverage
 
+Run the complete test suite with coverage reporting:
 ```bash
+# Run pytest test suite
 pytest
+
+# Run pytest with code coverage
+pytest --cov=app --cov=ml --cov-report=term-missing
 ```
 
 ---
@@ -98,12 +145,12 @@ pytest
 
 To generate an accurate line count report across python, html, css, js, and documentation files:
 ```bash
-python scripts/count_loc.py
+python scripts/verify_project.py
 ```
 
 ---
 
-## License & Documentation
+## Technical Documentation & Architecture
 
 Detailed technical documentation is available in the [`docs/`](./docs/) directory:
 - [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
