@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Field Plot Details — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-success mb-1"><i class="fa-solid fa-map-location-dot me-2"></i>Field: {{ field.name }}</h2>
+            <p class="text-muted mb-0">Farm: {{ field.farm.name if field.farm else 'Unassigned Farm' }} | Size: {{ field.area_acres }} Acres</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('farmer.soil_analysis', field_id=field.id) }}" class="btn btn-outline-success rounded-pill"><i class="fa-solid fa-flask me-1"></i>New Soil Test</a>
+            <a href="{{ url_for('farmer.irrigation_schedule', field_id=field.id) }}" class="btn btn-outline-info rounded-pill"><i class="fa-solid fa-droplet me-1"></i>Irrigation Schedule</a>
+        </div>
+    </div>
+
+    <!-- Field Overview Metric Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3">
+                <span class="text-muted fs-8 fw-bold">TOTAL AREA</span>
+                <h3 class="fw-bold text-success mb-0">{{ field.area_acres }} <small class="fs-7 text-muted">Acres</small></h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3">
+                <span class="text-muted fs-8 fw-bold">SOIL TYPE</span>
+                <h3 class="fw-bold text-primary mb-0">{{ field.soil_type or 'Loamy' }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3">
+                <span class="text-muted fs-8 fw-bold">CURRENT CROP</span>
+                <h3 class="fw-bold text-warning mb-0">{{ current_crop.name if current_crop else 'Unassigned' }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3">
+                <span class="text-muted fs-8 fw-bold">IRRIGATION TYPE</span>
+                <h3 class="fw-bold text-info mb-0">{{ field.irrigation_type or 'Drip Irrigation' }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Soil History Section -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <h5 class="fw-bold text-success mb-0"><i class="fa-solid fa-flask me-2"></i>Recent Soil Tests</h5>
+        </div>
+        <div class="card-body p-4">
+            {% if soil_samples %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Test Date</th>
+                                <th>pH</th>
+                                <th>Nitrogen (N)</th>
+                                <th>Phosphorus (P)</th>
+                                <th>Potassium (K)</th>
+                                <th>Health Score</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sample in soil_samples %}
+                                <tr>
+                                    <td>{{ sample.created_at.strftime('%Y-%m-%d') if sample.created_at else 'N/A' }}</td>
+                                    <td><span class="fw-bold">{{ sample.ph_level }}</span></td>
+                                    <td>{{ sample.nitrogen_mg_kg }} mg/kg</td>
+                                    <td>{{ sample.phosphorus_mg_kg }} mg/kg</td>
+                                    <td>{{ sample.potassium_mg_kg }} mg/kg</td>
+                                    <td><span class="badge bg-success-subtle text-success fs-7">{{ sample.soil_quality_score }}/100</span></td>
+                                    <td><a href="{{ url_for('farmer.get_sample_detail', sample_id=sample.id) }}" class="btn btn-sm btn-light border">View Report</a></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">No soil sample tests recorded for this field yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

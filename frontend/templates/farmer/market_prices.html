@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Regional Commodity Market Prices — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-success mb-1"><i class="fa-solid fa-chart-line me-2"></i>Regional Mandi Commodity Market Prices</h2>
+            <p class="text-muted mb-0">Local mandi rates, minimum support prices (MSP), price trends, and grain storage trade-off math.</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold text-success mb-3"><i class="fa-solid fa-store me-2"></i>Tracked Crop Commodity Market Rates</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Crop Commodity</th>
+                            <th>Market Price / Tonne</th>
+                            <th>Minimum Support Price (MSP)</th>
+                            <th>Price Trend</th>
+                            <th>Selling Recommendation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if prices %}
+                            {% for p in prices %}
+                                <tr>
+                                    <td><span class="fw-bold text-dark">{{ p.crop_name }}</span></td>
+                                    <td><span class="fw-bold text-success">${{ p.price_per_tonne }}</span></td>
+                                    <td>${{ p.msp_per_tonne }}</td>
+                                    <td>
+                                        <span class="badge {% if p.trend == 'upward' %}bg-success-subtle text-success{% elif p.trend == 'downward' %}bg-danger-subtle text-danger{% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                            {{ p.trend|capitalize }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="fs-8 fw-semibold text-muted">
+                                            {% if p.trend == 'upward' %}Hold for Future Higher Sale{% else %}Immediate Mandi Sale{% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="5" class="text-center py-4 text-muted">No commodity price data available.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

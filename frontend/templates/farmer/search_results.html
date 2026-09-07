@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold text-success mb-1">
+                <i class="fa-solid fa-magnifying-glass me-2"></i>Unified Search Engine
+            </h2>
+            <p class="text-muted mb-0">Search across Farms, Fields, Soil Tests, Crops, Fertilizers, Disease Records, and Financial Ledger.</p>
+        </div>
+    </div>
+
+    <!-- Search Bar Form -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body p-4">
+            <form action="{{ url_for('farmer.search') }}" method="GET" class="row g-3">
+                <div class="col-md-7">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="q" class="form-control border-start-0 bg-light" placeholder="Search by crop, field name, disease, farmer..." value="{{ query or '' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="category" class="form-select form-select-lg">
+                        <option value="all" {% if category == 'all' %}selected{% endif %}>All Categories</option>
+                        <option value="farms" {% if category == 'farms' %}selected{% endif %}>Farms & Fields</option>
+                        <option value="soil" {% if category == 'soil' %}selected{% endif %}>Soil Samples</option>
+                        <option value="crops" {% if category == 'crops' %}selected{% endif %}>Crops Catalog</option>
+                        <option value="disease" {% if category == 'disease' %}selected{% endif %}>Disease Scans</option>
+                        <option value="finance" {% if category == 'finance' %}selected{% endif %}>Financial Ledger</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-success btn-lg w-full fw-bold"><i class="fa-solid fa-filter me-2"></i>Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Display -->
+    {% if query %}
+        <h4 class="fw-bold mb-3">Search Results for "<span class="text-success">{{ query }}</span>"</h4>
+        {% if results and results.total_matches > 0 %}
+            <div class="row g-4">
+                {% if results.farms %}
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-header bg-white border-0 pt-4 px-4">
+                                <h5 class="fw-bold text-success mb-0"><i class="fa-solid fa-warehouse me-2"></i>Farms & Fields ({{ results.farms|length }})</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-3">
+                                    {% for farm in results.farms %}
+                                        <div class="col-md-4">
+                                            <div class="p-3 bg-light rounded-3 border">
+                                                <h6 class="fw-bold mb-1">{{ farm.name }}</h6>
+                                                <p class="text-muted fs-7 mb-2"><i class="fa-solid fa-location-dot me-1"></i>{{ farm.location or 'Local Region' }} | {{ farm.total_area_acres }} Acres</p>
+                                                <a href="{{ url_for('farmer.farm_detail', farm_id=farm.id) }}" class="btn btn-sm btn-outline-success">View Farm</a>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if results.crops %}
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-header bg-white border-0 pt-4 px-4">
+                                <h5 class="fw-bold text-success mb-0"><i class="fa-solid fa-seedling me-2"></i>Crops Catalog ({{ results.crops|length }})</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-3">
+                                    {% for crop in results.crops %}
+                                        <div class="col-md-3">
+                                            <div class="p-3 bg-light rounded-3 border">
+                                                <h6 class="fw-bold mb-1">{{ crop.name }}</h6>
+                                                <p class="text-muted fs-7 mb-1">Category: {{ crop.category or 'General' }}</p>
+                                                <span class="badge bg-success-subtle text-success">Season: {{ crop.growing_season or 'All' }}</span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fa-solid fa-magnifying-glass-minus text-muted display-3 mb-3"></i>
+                <h5 class="fw-bold">No matches found</h5>
+                <p class="text-muted">Try adjusting your search query or selecting a different category filter.</p>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

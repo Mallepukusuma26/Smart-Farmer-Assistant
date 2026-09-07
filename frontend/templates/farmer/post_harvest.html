@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Post-Harvest & Grain Storage — Smart Farmer Assistant{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="h3 mb-4 text-gray-800">Post-Harvest Silo & Grain Storage Monitoring</div>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-3 p-3">
+                <div class="h5 fw-bold">Silo A1 — Wheat</div>
+                <p class="text-muted">Storage Temp: 14.5°C | Moisture: 12.2%</p>
+                <span class="badge bg-success w-50">Respiration: Low (Safe)</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-3 p-3">
+                <div class="h5 fw-bold">Silo B2 — Maize</div>
+                <p class="text-muted">Storage Temp: 18.2°C | Moisture: 14.1%</p>
+                <span class="badge bg-warning text-dark w-50">Aeration Needed</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

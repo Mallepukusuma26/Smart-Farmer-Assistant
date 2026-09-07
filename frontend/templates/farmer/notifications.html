@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Notification Inbox — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-success mb-1"><i class="fa-solid fa-bell me-2"></i>Notification Inbox</h2>
+            <p class="text-muted mb-0">System alerts, irrigation reminders, fertilizer schedules, and disease warnings.</p>
+        </div>
+        <div>
+            <form action="{{ url_for('farmer.mark_all_notifications_read') }}" method="POST" class="d-inline">
+                <button type="submit" class="btn btn-outline-success fw-bold rounded-pill px-4">
+                    <i class="fa-solid fa-check-double me-2"></i>Mark All Read
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            {% if notifications %}
+                <div class="list-group list-group-flush">
+                    {% for notif in notifications %}
+                        <div class="list-group-item p-4 d-flex align-items-start justify-content-between {% if not notif.is_read %}bg-light-subtle{% endif %}">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="p-3 rounded-circle fs-5 {% if notif.category == 'disease' %}bg-danger-subtle text-danger{% elif notif.category == 'irrigation' %}bg-info-subtle text-info{% else %}bg-success-subtle text-success{% endif %}">
+                                    <i class="fa-solid {% if notif.category == 'disease' %}fa-bug{% elif notif.category == 'irrigation' %}fa-droplet{% else %}fa-leaf{% endif %}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">{{ notif.title }}</h6>
+                                    <p class="text-muted fs-7 mb-1">{{ notif.message }}</p>
+                                    <span class="text-muted fs-8"><i class="fa-regular fa-clock me-1"></i>{{ notif.created_at.strftime('%Y-%m-%d %H:%M') if notif.created_at else 'Recent' }}</span>
+                                </div>
+                            </div>
+                            {% if not notif.is_read %}
+                                <form action="{{ url_for('farmer.mark_notification_read', notification_id=notif.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-sm btn-light border text-muted">Mark Read</button>
+                                </form>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary"><i class="fa-solid fa-check me-1"></i>Read</span>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fa-regular fa-bell-slash text-muted display-4 mb-3"></i>
+                    <h5 class="fw-bold">No Notifications</h5>
+                    <p class="text-muted">You are all caught up! System alerts and reminders will appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

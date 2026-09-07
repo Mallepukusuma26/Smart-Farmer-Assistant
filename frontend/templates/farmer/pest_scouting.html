@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Pest Scouting & Economic Threshold — Smart Farmer Assistant{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="h3 mb-3 text-gray-800">Insect Pest Scouting & Economic Injury Level (EIL)</div>
+    <div class="card border-0 shadow-sm rounded-3 p-4">
+        <h5 class="fw-bold mb-3">Scouting Logs & Action Thresholds</h5>
+        <div class="table-responsive">
+            <table class="table align-middle custom-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>Pest Name</th>
+                        <th>Crop Field</th>
+                        <th>Scouted Density</th>
+                        <th>Economic Threshold</th>
+                        <th>Status</th>
+                        <th>Recommended Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Fall Armyworm</td>
+                        <td>Maize Field B1</td>
+                        <td>4.2 / m²</td>
+                        <td>3.0 / m²</td>
+                        <td><span class="badge bg-danger">Action Required</span></td>
+                        <td>Apply Neem-based Azadirachtin spray immediately.</td>
+                    </tr>
+                    <tr>
+                        <td>Aphids</td>
+                        <td>Wheat Field A2</td>
+                        <td>1.1 / m²</td>
+                        <td>5.0 / m²</td>
+                        <td><span class="badge bg-success">Safe</span></td>
+                        <td>Monitor again in 5 days.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

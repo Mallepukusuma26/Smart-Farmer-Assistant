@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Crop Water Stress (CWSI) — Smart Farmer Assistant{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="h3 mb-3 text-gray-800">Thermal Crop Water Stress Index (CWSI)</div>
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-3 p-4 text-center">
+                <h5 class="fw-bold">Field A1 Canopy Thermal Gauge</h5>
+                <canvas id="cwsiGaugeCanvas" width="300" height="180" class="mx-auto my-3"></canvas>
+                <div class="alert alert-info mb-0">Current CWSI: <strong>0.32 (Mild Stress)</strong></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-3 p-4">
+                <h5 class="fw-bold">Sensor Inputs</h5>
+                <form id="cwsiForm">
+                    <div class="mb-3">
+                        <label class="form-label">Canopy Temp (°C)</label>
+                        <input type="number" step="0.1" class="form-control" value="28.5" id="inputTc"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Air Temp (°C)</label>
+                        <input type="number" step="0.1" class="form-control" value="26.0" id="inputTa"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Relative Humidity (%)</label>
+                        <input type="number" class="form-control" value="55" id="inputRh"/>
+                    </div>
+                    <button type="button" class="btn btn-primary w-100" onclick="calculateCWSI()">Evaluate CWSI</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

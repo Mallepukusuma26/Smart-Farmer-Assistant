@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Farmer Directory — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-success mb-1"><i class="fa-solid fa-users me-2"></i>Registered Farmers Directory</h2>
+            <p class="text-muted mb-0">Admin & Advisor Management View</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+            {% if farmers %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Farmer Name</th>
+                                <th>Email / Contact</th>
+                                <th>Experience</th>
+                                <th>Farming Type</th>
+                                <th>Total Farms</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for f in farmers %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="avatar-circle bg-success text-white fw-bold">{{ f.user.username[0].upper() if f.user else 'F' }}</div>
+                                            <div>
+                                                <span class="fw-bold d-block">{{ f.user.full_name or f.user.username if f.user else 'Farmer' }}</span>
+                                                <span class="text-muted fs-8">ID: #{{ f.id }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="d-block text-dark">{{ f.user.email if f.user else 'N/A' }}</span>
+                                        <span class="text-muted fs-8">{{ f.user.phone if f.user else '' }}</span>
+                                    </td>
+                                    <td>{{ f.experience_years or 5 }} Years</td>
+                                    <td><span class="badge bg-success-subtle text-success">{{ f.farming_type or 'Organic / Mixed' }}</span></td>
+                                    <td><span class="fw-bold text-dark">{{ f.farms|length }} Farms</span></td>
+                                    <td>
+                                        <a href="{{ url_for('advisor.farmer_detail', farmer_id=f.id) }}" class="btn btn-sm btn-outline-success rounded-pill px-3">View Profile</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted text-center py-4 mb-0">No farmers registered in the system yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

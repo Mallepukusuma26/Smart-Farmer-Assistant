@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Report Viewer — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-success mb-1"><i class="fa-solid fa-file-invoice me-2"></i>{{ report.title if report else 'Generated Report' }}</h2>
+            <p class="text-muted mb-0">Compiled Report Statement & Executive Summary</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('farmer.generate_report', type=report_type, format='pdf') }}" class="btn btn-danger fw-bold rounded-pill"><i class="fa-solid fa-file-pdf me-2"></i>Export PDF</a>
+            <a href="{{ url_for('farmer.generate_report', type=report_type, format='csv') }}" class="btn btn-success fw-bold rounded-pill"><i class="fa-solid fa-file-csv me-2"></i>Export CSV</a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4">
+        <div class="border-bottom pb-3 mb-4">
+            <h4 class="fw-bold text-success mb-1">Smart Farmer Assistant Statement</h4>
+            <span class="text-muted fs-7">Generated Date: {{ report_data.generated_at if report_data else 'Today' }}</span>
+        </div>
+
+        {% if report_data and report_data.headers %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            {% for h in report_data.headers %}
+                                <th>{{ h }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in report_data.table_rows %}
+                            <tr>
+                                {% for cell in row %}
+                                    <td>{{ cell }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted">Report dataset compiled successfully.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

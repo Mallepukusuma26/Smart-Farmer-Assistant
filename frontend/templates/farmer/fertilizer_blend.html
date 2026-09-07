@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Physical Fertilizer Blending Calculator — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold text-success mb-1"><i class="fa-solid fa-boxes-packing me-2"></i>Physical Fertilizer Blending Calculator</h2>
+            <p class="text-muted mb-0">Calculate exact weights of commercial Urea (46-0-0), DAP (18-46-0), and MOP (0-0-60) to achieve target N-P-K nutrient weights.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold text-success mb-3"><i class="fa-solid fa-scale-balanced me-2"></i>Target Nutrient Weight (kg)</h5>
+                <form action="{{ url_for('farmer.fertilizer_recommendation') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Target Nitrogen (N) kg</label>
+                        <input type="number" step="0.1" name="nitrogen_kg" class="form-control" value="50.0">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Target Phosphorus (P2O5) kg</label>
+                        <input type="number" step="0.1" name="phosphorus_kg" class="form-control" value="30.0">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Target Potassium (K2O) kg</label>
+                        <input type="number" step="0.1" name="potassium_kg" class="form-control" value="40.0">
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-full fw-bold mt-2">
+                        <i class="fa-solid fa-calculator me-2"></i>Formulate Blend
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bold text-success mb-3"><i class="fa-solid fa-prescription-bottle-medical me-2"></i>Formulated Fertilizer Proportion</h5>
+                {% if result %}
+                    <div class="p-4 bg-light rounded-4 mb-4">
+                        <h4 class="fw-bold text-success mb-2">Total Blend Weight: {{ result.total_blend_weight_kg }} kg</h4>
+                        <div class="row text-center g-3">
+                            <div class="col-4">
+                                <div class="p-2 bg-white rounded-3 border">
+                                    <span class="text-muted fs-8 d-block">UREA (46-0-0)</span>
+                                    <span class="fw-bold text-primary fs-5">{{ result.formulation.urea_46_0_0_kg }} kg</span>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-2 bg-white rounded-3 border">
+                                    <span class="text-muted fs-8 d-block">DAP (18-46-0)</span>
+                                    <span class="fw-bold text-warning fs-5">{{ result.formulation.dap_18_46_0_kg }} kg</span>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-2 bg-white rounded-3 border">
+                                    <span class="text-muted fs-8 d-block">MOP (0-0-60)</span>
+                                    <span class="fw-bold text-info fs-5">{{ result.formulation.mop_0_0_60_kg }} kg</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted fs-7">Estimated Material Cost: <span class="fw-bold text-dark">${{ result.estimated_cost_usd }}</span> (${{ result.cost_per_kg_blend }} / kg)</p>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fa-solid fa-seedling text-muted display-4 mb-3"></i>
+                        <h6 class="fw-bold">No Blend Formulated</h6>
+                        <p class="text-muted">Enter target N, P, and K weights to compute exact physical mixing proportions for commercial fertilizers.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

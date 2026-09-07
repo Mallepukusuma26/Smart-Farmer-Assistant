@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Advisory Consultation Tickets — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-success mb-1"><i class="fa-solid fa-comments me-2"></i>Advisory Consultation Tickets</h2>
+            <p class="text-muted mb-0">Farmer Consultation Requests & Expert Recommendations</p>
+        </div>
+        {% if current_user.is_farmer() %}
+            <div>
+                <button class="btn btn-success rounded-pill fw-bold" data-toggle="modal" data-target="#newCaseModal">
+                    <i class="fa-solid fa-plus me-1"></i>Request Consultation
+                </button>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+            {% if cases %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ticket ID</th>
+                                <th>Subject</th>
+                                <th>Farmer</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Date Submitted</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in cases %}
+                                <tr>
+                                    <td><span class="fw-bold text-muted">#{{ c.id }}</span></td>
+                                    <td><span class="fw-bold text-dark">{{ c.subject }}</span></td>
+                                    <td>{{ c.farmer.user.full_name if c.farmer and c.farmer.user else 'Farmer' }}</td>
+                                    <td><span class="badge bg-secondary-subtle text-secondary">{{ c.category or 'General' }}</span></td>
+                                    <td>
+                                        <span class="badge {% if c.status == 'resolved' %}bg-success-subtle text-success{% elif c.status == 'open' %}bg-warning-subtle text-warning{% else %}bg-info-subtle text-info{% endif %}">
+                                            {{ c.status|capitalize }}
+                                        </span>
+                                    </td>
+                                    <td>{{ c.created_at.strftime('%Y-%m-%d') if c.created_at else 'Recent' }}</td>
+                                    <td>
+                                        {% if current_user.is_advisor() or current_user.is_admin() %}
+                                            <button class="btn btn-sm btn-outline-success rounded-pill" data-toggle="modal" data-target="#resolveModal{{ c.id }}">Resolve</button>
+                                        {% else %}
+                                            <span class="text-muted fs-8">Submitted</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fa-solid fa-comments text-muted display-4 mb-3"></i>
+                    <h5 class="fw-bold">No Advisory Tickets</h5>
+                    <p class="text-muted">Farmer consultation requests and expert advisory cases will appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

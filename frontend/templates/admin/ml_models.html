@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}ML Models Control Center — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold text-success mb-1"><i class="fa-solid fa-brain me-2"></i>Machine Learning Control Center</h2>
+            <p class="text-muted mb-0">Local ML Algorithms, Accuracy Metrics, Feature Descriptors, and Joblib Serialized Models.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for key, model in models_status.items() %}
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold text-success mb-0"><i class="fa-solid fa-microchip me-2"></i>{{ model.model_name }}</h5>
+                        <span class="badge {% if model.status == 'LOADED' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %} px-3 py-2 rounded-pill fs-7">
+                            {{ model.status }}
+                        </span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded-3">
+                                    <span class="text-muted fs-8 d-block">BEST ALGORITHM</span>
+                                    <span class="fw-bold fs-7">{{ model.best_model }}</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded-3">
+                                    <span class="text-muted fs-8 d-block">ACCURACY / R2 SCORE</span>
+                                    <span class="fw-bold fs-7 text-success">{{ model.accuracy or model.r2_score or 'N/A' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold fs-7 text-muted mb-2">EVALUATED ALGORITHMS:</h6>
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            {% for alg in model.algorithms %}
+                                <span class="badge bg-secondary-subtle text-secondary">{{ alg }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <h6 class="fw-bold fs-7 text-muted mb-2">FEATURE DESCRIPTORS:</h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for feat in model.features %}
+                                <span class="badge bg-success-subtle text-success">{{ feat }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
