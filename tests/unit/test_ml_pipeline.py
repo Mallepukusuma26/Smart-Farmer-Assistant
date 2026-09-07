@@ -1,4 +1,5 @@
 import pytest
+import math
 from ml.prediction.crop_predictor import CropPredictor
 from ml.prediction.yield_predictor import YieldPredictor
 from ml.prediction.profit_predictor import ProfitPredictor
@@ -9,6 +10,14 @@ def test_crop_predictor():
     assert len(recs) == 3
     assert 'crop_name' in recs[0]
     assert recs[0]['suitability_score'] > 0
+    assert 'prediction_source' in recs[0]
+
+def test_crop_predictor_top_n_and_sanitization():
+    predictor = CropPredictor()
+    top_items = predictor.predict_top_n(n=-10, p=float('nan'), k=40, temperature=25.0, humidity=80.0, ph=6.5, rainfall=200.0, top_n=2)
+    assert len(top_items) == 2
+    assert 'crop_name' in top_items[0]
+    assert 'confidence' in top_items[0]
 
 def test_yield_predictor():
     predictor = YieldPredictor()
@@ -28,6 +37,13 @@ def test_yield_predictor():
     assert 'predicted_yield_tons' in res
     assert res['predicted_yield_tons'] > 0
     assert res['expected_range_min'] < res['expected_range_max']
+    assert 'prediction_source' in res
+    assert 'confidence_score' in res
+
+def test_yield_predictor_predict_yield_helper_and_sanitization():
+    predictor = YieldPredictor()
+    y_per_acre = predictor.predict_yield(crop_name='rice', rainfall_mm=-500.0, pesticides_tonnes=float('nan'), avg_temp=28.0)
+    assert y_per_acre > 0
 
 def test_profit_predictor():
     predictor = ProfitPredictor()
@@ -35,3 +51,4 @@ def test_profit_predictor():
     assert res['expected_revenue'] == 3500.0
     assert res['expected_profit'] > 0
     assert res['profit_margin_percent'] > 0
+
