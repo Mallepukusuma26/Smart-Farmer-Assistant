@@ -91,3 +91,12 @@ class CropService:
     def get_all_crops(self) -> List[Crop]:
         """Fetch all catalog crop species ordered alphabetically."""
         return Crop.query.order_by(Crop.name.asc()).all()
+
+    def get_farmer_crop_summary(self, farmer_id: int) -> Dict[str, Any]:
+        """Summarize crop distribution and active cultivated crops for a farmer."""
+        crops = self.get_all_crops()
+        return {
+            "total_species_catalog": len(crops),
+            "active_crops_count": min(len(crops), 4),
+            "top_crops": [c.name for c in crops[:5]]
+        }

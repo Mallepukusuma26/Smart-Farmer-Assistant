@@ -3,6 +3,7 @@ from app.repositories.farm_repository import FarmRepository
 from app.repositories.field_repository import FieldRepository
 from app.models.farm import Farm
 from app.models.field import Field
+from app.extensions import db
 
 class FarmService:
     """Domain Service for managing farm properties, plot divisions, equipment, and GPS boundaries."""
@@ -10,6 +11,22 @@ class FarmService:
     def __init__(self, farm_repo: Optional[FarmRepository] = None, field_repo: Optional[FieldRepository] = None):
         self.farm_repo = farm_repo or FarmRepository()
         self.field_repo = field_repo or FieldRepository()
+
+    def get_farms_by_farmer_id(self, farmer_id: int) -> List[Farm]:
+        """Retrieve all farms belonging to a farmer."""
+        return self.farm_repo.get_farms_by_farmer(farmer_id)
+
+    def get_farm_by_id(self, farm_id: int) -> Optional[Farm]:
+        """Retrieve farm property by ID."""
+        return self.farm_repo.get_by_id(farm_id)
+
+    def get_fields_by_farm_id(self, farm_id: int) -> List[Field]:
+        """Retrieve all fields registered under a farm."""
+        return db.session.query(Field).filter_by(farm_id=farm_id).all() if hasattr(self.field_repo, 'filter_by') else self.field_repo.get_all()
+
+    def get_field_by_id(self, field_id: int) -> Optional[Field]:
+        """Retrieve field details by ID."""
+        return self.field_repo.get_by_id(field_id)
 
     def create_farm(
         self,

@@ -20,9 +20,11 @@ PROD_EXTENSIONS = {
     '.sql': 'SQL Scripts'
 }
 
-def count_production_loc():
+def count_production_loc(root_dir=None):
+    root_dir = root_dir or PROJECT_ROOT
     total_loc = 0
     total_files = 0
+
     loc_by_category = {}
     file_counts = {}
     loc_by_directory = {}

@@ -9,6 +9,14 @@ class SoilService:
     def __init__(self, repository: Optional[SoilRepository] = None):
         self.repository = repository or SoilRepository()
 
+    def get_recent_samples_by_farmer(self, farmer_id: int, limit: int = 5) -> List[Dict[str, Any]]:
+        """Fetch most recent soil test samples for a farmer's fields."""
+        from app.models.field import Field
+        from app.models.farm import Farm
+        from app.extensions import db
+        records = db.session.query(SoilRecord).join(Field, SoilRecord.field_id == Field.id).join(Farm, Field.farm_id == Farm.id).filter(Farm.farmer_id == farmer_id).order_by(SoilRecord.test_date.desc()).limit(limit).all()
+        return [r.to_dict() for r in records]
+
     def calculate_health_score(self, ph: float, N: float, P: float, K: float, OC: float = 0.75, EC: float = 0.5) -> float:
         """Calculate weighted soil health score index (0-100%)."""
         score = 100.0
@@ -49,8 +57,8 @@ class SoilService:
 
         return round(max(10.0, min(100.0, score)), 1)
 
+    @staticmethod
     def analyze_and_save_soil(
-        self,
         field_id: int,
         ph: float,
         nitrogen: float,
@@ -62,7 +70,10 @@ class SoilService:
         soil_type: str = 'Loamy'
     ) -> SoilRecord:
         """Perform comprehensive agronomic soil analysis, detect deficiencies, create improvement plans, and persist record."""
-        health_score = self.calculate_health_score(ph, nitrogen, phosphorus, potassium, organic_carbon, electrical_conductivity)
+        service = SoilService()
+        health_score = service.calculate_health_score(ph, nitrogen, phosphorus, potassium, organic_carbon, electrical_conductivity)
+
+
 
         deficiencies: List[str] = []
         recommendations: List[str] = []
@@ -136,7 +147,7 @@ class SoilService:
         deficiency_str = "; ".join(deficiencies) if deficiencies else "No major nutrient deficiencies detected."
         rec_str = "; ".join(recommendations) if recommendations else "Soil nutrient levels are well balanced."
 
-        record = self.repository.create(
+        record = service.repository.create(
             field_id=field_id,
             ph=float(ph),
             nitrogen=float(nitrogen),
@@ -153,7 +164,7 @@ class SoilService:
         )
 
         for p in plans:
-            self.repository.add_improvement_plan(
+            service.repository.add_improvement_plan(
                 soil_record_id=record.id,
                 amendment_type=p['amendment_type'],
                 target_parameter=p['target_parameter'],
@@ -163,6 +174,7 @@ class SoilService:
             )
 
         return record
+
 
     def compare_soil_history(self, field_id: int) -> Dict[str, Any]:
         """Compare current soil test with previous historical soil test to evaluate improvement trend."""

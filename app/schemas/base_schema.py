@@ -16,6 +16,8 @@ class BaseSchema:
             return instance
         return vars(instance)
 
+    dump_single = dump_one
+
     @staticmethod
     def dump_many(instances: List[Any]) -> List[Dict[str, Any]]:
         """Serialize list of objects to list of dictionaries."""

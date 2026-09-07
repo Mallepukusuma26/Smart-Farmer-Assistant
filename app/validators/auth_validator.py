@@ -9,9 +9,6 @@ class LoginValidator(BaseValidator):
         username_or_email = self.sanitize_string('username_or_email', max_length=120)
         password = self.data.get('password', '')
 
-        if len(password) < 6:
-            self.add_error('password', 'Password must be at least 6 characters long.')
-
         if not self.is_valid():
             return {}
 
@@ -77,12 +74,15 @@ class AuthValidator:
     """Unified authentication request validator."""
 
     @staticmethod
-    def validate_login(data: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_login(data: Dict[str, Any]):
         val = LoginValidator(data)
-        return val.validate()
+        res = val.validate()
+        return val.is_valid(), val.errors if not val.is_valid() else res
 
     @staticmethod
-    def validate_registration(data: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_registration(data: Dict[str, Any]):
         val = RegistrationValidator(data)
-        return val.validate()
+        res = val.validate()
+        return val.is_valid(), val.errors if not val.is_valid() else res
+
 

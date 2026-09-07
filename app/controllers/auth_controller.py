@@ -83,12 +83,13 @@ class AuthController(BaseController):
                 return render_template("auth/register.html", form_data=data), 400
 
             # Audit log
+            role_val = user.role.value if hasattr(user.role, 'value') else str(user.role)
             self.audit_service.log_event(
                 user_id=user.id,
                 action="USER_REGISTERED",
                 entity_type="User",
                 entity_id=user.id,
-                details={"username": user.username, "email": user.email, "role": user.role.value}
+                details={"username": user.username, "email": user.email, "role": role_val}
             )
 
             # Auto login upon registration
@@ -96,19 +97,19 @@ class AuthController(BaseController):
             session["user_id"] = user.id
             session["username"] = user.username
             session["email"] = user.email
-            session["role"] = user.role.value
+            session["role"] = role_val
             session["full_name"] = user.full_name or user.username
 
             if request.is_json:
                 user_data = self.user_schema.dump_single(user)
                 return self.success_response(
-                    data={"user": user_data, "redirect_url": self._get_dashboard_url(user.role.value)},
+                    data={"user": user_data, "redirect_url": self._get_dashboard_url(role_val)},
                     message="Registration successful! Welcome to Smart Farmer Assistant.",
                     status_code=201
                 )
 
             flash("Registration successful! Welcome to Smart Farmer Assistant.", "success")
-            return redirect(self._get_dashboard_url(user.role.value))
+            return redirect(self._get_dashboard_url(role_val))
 
         except Exception as e:
             return self.handle_exception(e, "Error processing registration")
@@ -129,20 +130,21 @@ class AuthController(BaseController):
             if request.is_json:
                 return self.error_response(message="Login validation failed", errors=validation_errors, status_code=400)
             for err in validation_errors:
-                flash(err, "danger")
-            return render_template("auth/login.html", errors=validation_errors), 400
+                flash(str(err), "danger")
+            return render_template("auth/login.html", errors=validation_errors), 200
 
         try:
-            username_or_email = data.get("username", "").strip()
+            username_or_email = (data.get("username_or_email") or data.get("username") or data.get("email") or "").strip()
             password = data.get("password")
 
             user, token = self.auth_service.authenticate_user(username_or_email, password)
             if not user:
-                msg = "Invalid username/email or password"
+                msg = "Invalid credentials. Please check your username/email and password."
+
                 if request.is_json:
                     return self.error_response(message=msg, status_code=401)
                 flash(msg, "danger")
-                return render_template("auth/login.html"), 401
+                return render_template("auth/login.html"), 200
 
             if not user.is_active:
                 msg = "Your account has been deactivated. Please contact support or system administrator."
@@ -152,12 +154,13 @@ class AuthController(BaseController):
                 return render_template("auth/login.html"), 403
 
             # Session initialization
+            role_val = user.role.value if hasattr(user.role, 'value') else str(user.role)
             session.clear()
             session["user_id"] = user.id
             session["username"] = user.username
             session["email"] = user.email
-            session["role"] = user.role.value
-            session["full_name"] = user.full_name or user.username
+            session["role"] = role_val
+            session["full_name"] = getattr(user, 'full_name', None) or user.username
 
             self.audit_service.log_event(
                 user_id=user.id,
@@ -167,7 +170,7 @@ class AuthController(BaseController):
                 details={"ip_address": request.remote_addr, "user_agent": request.headers.get("User-Agent", "")}
             )
 
-            redirect_url = self._get_dashboard_url(user.role.value)
+            redirect_url = self._get_dashboard_url(role_val)
             if request.is_json:
                 user_data = self.user_schema.dump_single(user)
                 return self.success_response(
@@ -175,7 +178,8 @@ class AuthController(BaseController):
                     message="Login successful"
                 )
 
-            flash(f"Welcome back, {user.full_name or user.username}!", "success")
+            user_name = getattr(user, 'full_name', None) or user.username
+            flash(f"Welcome back, {user_name}!", "success")
             return redirect(redirect_url)
 
         except Exception as e:
@@ -328,9 +332,10 @@ class AuthController(BaseController):
         """
         Returns the appropriate dashboard route URL depending on user role.
         """
-        if role in ["admin", UserRole.ADMIN.value]:
+        r = str(role).lower()
+        if r in ["admin"]:
             return url_for("admin.dashboard")
-        elif role in ["advisor", UserRole.ADVISOR.value]:
+        elif r in ["advisor"]:
             return url_for("advisor.dashboard")
         return url_for("farmer.dashboard")
 

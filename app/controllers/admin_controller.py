@@ -37,7 +37,10 @@ class AdminController(BaseController):
         Renders the main Admin Control Center dashboard.
         """
         if not self.is_admin():
+            if self.is_authenticated():
+                return render_template("errors/403.html"), 403
             return redirect(url_for("auth.login"))
+
 
         analytics = self.dashboard_service.get_admin_dashboard_analytics()
         recent_audits = self.audit_service.get_recent_audit_logs(limit=10)

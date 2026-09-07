@@ -13,6 +13,7 @@ from app.services.farm_service import FarmService
 from app.services.field_service import FieldService
 from app.services.soil_service import SoilService
 from app.services.crop_service import CropService
+from app.services.finance_service import FinanceService
 from app.services.audit_service import AuditService
 from app.validators.farmer_validator import FarmerProfileValidator
 from app.schemas.farmer_schema import FarmerSchema
@@ -34,6 +35,7 @@ class FarmerController(BaseController):
         self.field_service = FieldService()
         self.soil_service = SoilService()
         self.crop_service = CropService()
+        self.finance_service = FinanceService()
         self.audit_service = AuditService()
         self.validator = FarmerProfileValidator()
         self.farmer_schema = FarmerSchema()
@@ -54,11 +56,12 @@ class FarmerController(BaseController):
 
         farms = self.farm_service.get_farms_by_farmer_id(farmer.id)
         total_farms = len(farms)
-        total_fields = sum(len(farm.fields) for farm in farms)
-        total_area = sum(float(farm.total_area_acres or 0) for farm in farms)
+        total_fields = sum(farm.fields.count() if hasattr(farm.fields, 'count') else len(list(farm.fields)) for farm in farms)
+        total_area = sum(float(getattr(farm, 'total_area', None) or getattr(farm, 'total_area_acres', 0) or 0) for farm in farms)
 
         recent_soil_samples = self.soil_service.get_recent_samples_by_farmer(farmer.id, limit=5)
         crop_summary = self.crop_service.get_farmer_crop_summary(farmer.id)
+        fin_summary = self.finance_service.get_financial_summary(farmer.id, total_area)
 
         dashboard_data = {
             "farmer": self.farmer_schema.dump_single(farmer),
@@ -67,6 +70,7 @@ class FarmerController(BaseController):
             "total_area_acres": round(total_area, 2),
             "recent_soil_samples": recent_soil_samples,
             "crop_summary": crop_summary,
+            "fin_summary": fin_summary,
             "farms_list": [self.farm_schema.dump_single(f) for f in farms[:5]]
         }
 
