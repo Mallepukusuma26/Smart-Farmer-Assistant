@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}500 Internal Server Error — Smart Farmer Assistant{% endblock %}
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="card border-0 shadow-lg rounded-4 p-5 mx-auto max-w-500">
+        <i class="fa-solid fa-triangle-exclamation fs-1 text-danger mb-3"></i>
+        <h1 class="display-4 fw-extrabold text-dark mb-2">500</h1>
+        <h3 class="fw-bold mb-3">Internal Server Error</h3>
+        <p class="text-muted mb-4">An unexpected server error occurred. Our system administrators have been notified.</p>
+        <a href="{{ url_for('index') }}" class="btn btn-emerald rounded-pill px-4 py-2 fw-bold">Return Home</a>
+    </div>
+</div>
+{% endblock %}

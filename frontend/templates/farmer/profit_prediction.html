@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Profit Forecast & Break-even Calculator — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-extrabold tracking-tight mb-1 text-dark">Farm Profit Forecast & Break-even Calculator</h2>
+        <p class="text-muted mb-0">Local Gradient Boosting Regressor computing expected net profit, profit margin %, and break-even points.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h4 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-calculator text-success me-2"></i> Financial Parameters</h4>
+
+            <form method="POST" action="{{ url_for('farmer.profit_prediction') }}">
+                <div class="mb-3">
+                    <label for="field_id" class="form-label fw-semibold">Target Field Plot *</label>
+                    <select class="form-select" id="field_id" name="field_id" required>
+                        {% for f in fields %}
+                            <option value="{{ f.id }}" {% if loop.first %}selected{% endif %}>
+                                {{ f.field_name }} ({{ f.farm.name }} — {{ f.area }} Acres)
+                            </option>
+                        {% else %}
+                            <option value="1" selected>Primary Plot (Main Homestead)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="crop_id" class="form-label fw-semibold">Crop *</label>
+                    <select class="form-select" id="crop_id" name="crop_id" required>
+                        {% for c in crops %}
+                            <option value="{{ c.id }}" {% if loop.first %}selected{% endif %}>
+                                {{ c.name }} ({{ c.category }})
+                            </option>
+                        {% else %}
+                            <option value="1" selected>Maize (Cereal)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label for="expected_yield_tons" class="form-label fw-semibold">Expected Yield (Tons)</label>
+                        <input type="number" step="0.1" class="form-control" id="expected_yield_tons" name="expected_yield_tons" value="12.0" required>
+                    </div>
+                    <div class="col-6">
+                        <label for="expected_selling_price" class="form-label fw-semibold">Price / Ton ($)</label>
+                        <input type="number" step="1" class="form-control" id="expected_selling_price" name="expected_selling_price" value="350" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="estimated_expenses" class="form-label fw-semibold">Total Estimated Inputs Expense ($)</label>
+                    <input type="number" step="1" class="form-control" id="estimated_expenses" name="estimated_expenses" value="1500" required>
+                </div>
+
+                <button type="submit" class="btn btn-emerald w-100 py-3 fw-bold rounded-pill">
+                    Compute Profit Forecast <i class="fa-solid fa-sack-dollar ms-1"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        {% if prediction %}
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-4 border-success">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="text-muted small fw-semibold d-block">EXPECTED NET PROFIT</span>
+                        <h2 class="fw-extrabold text-success mb-0">${{ prediction.expected_profit }}</h2>
+                    </div>
+                    <span class="badge bg-success-subtle text-success fs-5 px-3 py-2 rounded-pill">{{ prediction.profit_margin_percent }}% Margin</span>
+                </div>
+
+                <div class="row g-3 text-center mb-4">
+                    <div class="col-6">
+                        <div class="bg-light p-3 rounded-3">
+                            <small class="text-muted d-block mb-1">Expected Revenue</small>
+                            <strong class="fs-4 text-dark">${{ prediction.expected_revenue }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-light p-3 rounded-3">
+                            <small class="text-muted d-block mb-1">Estimated Expenses</small>
+                            <strong class="fs-4 text-danger">${{ prediction.estimated_expenses }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-scale-balanced text-primary me-2"></i> Break-Even Analysis</h5>
+                <div class="bg-light p-3 rounded-3">
+                    <p class="mb-1"><strong>Minimum Yield to Break Even:</strong> {{ prediction.break_even_yield }} Tons</p>
+                    <p class="mb-0"><strong>Minimum Selling Price to Break Even:</strong> ${{ (prediction.estimated_expenses / max(prediction.expected_yield_tons, 0.1)) | round(2) }} / Ton</p>
+                </div>
+            </div>
+        {% else %}
+            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center text-muted h-100 d-flex align-items-center justify-content-center">
+                <div>
+                    <i class="fa-solid fa-calculator fs-1 text-success mb-3"></i>
+                    <h4 class="fw-bold text-dark">Profit Regressor Engine Ready</h4>
+                    <p>Enter yield expectation and selling price on the left to compute projected net return.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

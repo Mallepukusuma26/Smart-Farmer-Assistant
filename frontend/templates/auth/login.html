@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <div class="icon-box bg-success-subtle text-success rounded-circle p-3 d-inline-block mb-3">
+                        <i class="fa-solid fa-right-to-bracket fs-2"></i>
+                    </div>
+                    <h3 class="fw-bold">Sign In</h3>
+                    <p class="text-muted">Access your Smart Farmer Assistant dashboard</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('auth.login') }}">
+                    <div class="mb-3">
+                        <label for="username_or_email" class="form-label fw-semibold">Username or Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fa-solid fa-user text-muted"></i></span>
+                            <input type="text" class="form-control" id="username_or_email" name="username_or_email" placeholder="e.g. john_farmer or john@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-muted"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-emerald w-100 py-3 fw-bold rounded-pill mb-3">
+                        Sign In <i class="fa-solid fa-arrow-right ms-1"></i>
+                    </button>
+                </form>
+
+                <div class="text-center">
+                    <p class="text-muted mb-0">Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-success fw-bold text-decoration-none">Register here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

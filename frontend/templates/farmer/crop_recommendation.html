@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}ML Crop Recommendation — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-extrabold tracking-tight mb-1 text-dark">Machine Learning Crop Recommendation</h2>
+        <p class="text-muted mb-0">Local Random Forest classifier recommending optimal crops tailored to your soil & climate profile.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h4 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-sliders text-success me-2"></i> Agro-Climate Profile</h4>
+
+            <form method="POST" action="{{ url_for('farmer.crop_recommendation') }}">
+                <div class="row g-3 mb-3">
+                    <div class="col-4">
+                        <label for="nitrogen" class="form-label fw-semibold">Nitrogen (N)</label>
+                        <input type="number" step="1" class="form-control" id="nitrogen" name="nitrogen" value="90" required>
+                    </div>
+                    <div class="col-4">
+                        <label for="phosphorus" class="form-label fw-semibold">Phosphorus (P)</label>
+                        <input type="number" step="1" class="form-control" id="phosphorus" name="phosphorus" value="45" required>
+                    </div>
+                    <div class="col-4">
+                        <label for="potassium" class="form-label fw-semibold">Potassium (K)</label>
+                        <input type="number" step="1" class="form-control" id="potassium" name="potassium" value="40" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label for="temperature" class="form-label fw-semibold">Temperature (°C)</label>
+                        <input type="number" step="0.1" class="form-control" id="temperature" name="temperature" value="25.5" required>
+                    </div>
+                    <div class="col-6">
+                        <label for="humidity" class="form-label fw-semibold">Humidity (%)</label>
+                        <input type="number" step="0.1" class="form-control" id="humidity" name="humidity" value="80.0" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <label for="ph" class="form-label fw-semibold">Soil pH</label>
+                        <input type="number" step="0.1" class="form-control" id="ph" name="ph" value="6.5" required>
+                    </div>
+                    <div class="col-6">
+                        <label for="rainfall" class="form-label fw-semibold">Rainfall (mm)</label>
+                        <input type="number" step="1" class="form-control" id="rainfall" name="rainfall" value="200" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-emerald w-100 py-3 fw-bold rounded-pill">
+                    Find Recommended Crops <i class="fa-solid fa-wand-magic-sparkles ms-1"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        {% if recommendations %}
+            <h4 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-star text-warning me-2"></i> Top Recommended Crops</h4>
+            <div class="d-flex flex-column gap-3">
+                {% for rec in recommendations %}
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-4 border-success hover-lift">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h3 class="fw-bold text-dark mb-1">{{ rec.crop_name }}</h3>
+                                <span class="badge bg-success-subtle text-success me-2">{{ rec.category }}</span>
+                                <span class="badge bg-light text-dark border">{{ rec.season }} Season</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success fs-6 px-3 py-2 rounded-pill">{{ rec.suitability_score }}% Match</span>
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-2"><strong>Why Recommended:</strong> {{ rec.reason }}</p>
+                        <div class="d-flex flex-wrap gap-3 fs-7 text-secondary border-top pt-2">
+                            <span><i class="fa-solid fa-clock me-1 text-primary"></i> Duration: {{ rec.duration_days }} Days</span>
+                            <span><i class="fa-solid fa-wheat-field me-1 text-success"></i> Est. Yield: {{ rec.base_yield_per_acre }} Tons/Acre</span>
+                            <span><i class="fa-solid fa-droplet me-1 text-info"></i> Water Req: {{ rec.water_req_mm }} mm</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center text-muted h-100 d-flex align-items-center justify-content-center">
+                <div>
+                    <i class="fa-solid fa-seedling fs-1 text-success mb-3"></i>
+                    <h4 class="fw-bold text-dark">Local Machine Learning Engine Ready</h4>
+                    <p>Enter your soil and climatic conditions on the left to compute top recommended crops.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

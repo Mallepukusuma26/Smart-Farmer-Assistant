@@ -1,0 +1,102 @@
+/* Smart Farmer Assistant — Agricultural Design System */
+:root {
+    --primary-emerald: #1b4332;
+    --emerald-dark: #081c15;
+    --emerald-mid: #2d6a4f;
+    --emerald-light: #52b788;
+    --emerald-subtle: #d8f3dc;
+    --accent-gold: #e9c46a;
+    --bg-light: #f8f9fa;
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    --hover-shadow: 0 15px 35px rgba(27, 67, 50, 0.12);
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #2b2d42;
+    background-color: #f4f6f8;
+}
+
+/* Custom Navbar */
+.custom-navbar {
+    background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--primary-emerald) 100%);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+/* Buttons */
+.btn-emerald {
+    background: linear-gradient(135deg, var(--emerald-mid) 0%, var(--primary-emerald) 100%);
+    color: #ffffff;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-emerald:hover {
+    background: linear-gradient(135deg, var(--primary-emerald) 0%, var(--emerald-dark) 100%);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(27, 67, 50, 0.3);
+}
+
+/* Cards & Glassmorphism */
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hover-lift {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--hover-shadow) !important;
+}
+
+/* Sidebar Navigation */
+.sidebar-wrapper {
+    min-height: calc(100vh - 64px);
+    background-color: var(--emerald-dark) !important;
+}
+
+.sidebar-nav .nav-link {
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.sidebar-nav .nav-link:hover {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Custom Badges & Typography */
+.fs-7 { font-size: 0.85rem; }
+.fs-8 { font-size: 0.75rem; }
+.fw-extrabold { font-weight: 800; }
+.tracking-tight { letter-spacing: -0.025em; }
+
+.max-w-500 { max-width: 500px; }
+
+/* Custom Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Console — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-extrabold tracking-tight mb-1 text-dark">System Administration Console</h2>
+        <p class="text-muted mb-0">Platform overview, user management, machine learning metrics, and security audit trail.</p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white hover-lift">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold d-block mb-1">TOTAL USERS</span>
+                    <h3 class="fw-extrabold mb-0 text-dark">{{ total_users }}</h3>
+                </div>
+                <div class="icon-circle bg-primary-subtle text-primary p-3 rounded-circle">
+                    <i class="fa-solid fa-users fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white hover-lift">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold d-block mb-1">ACTIVE FARMERS</span>
+                    <h3 class="fw-extrabold mb-0 text-success">{{ total_farmers }}</h3>
+                </div>
+                <div class="icon-circle bg-success-subtle text-success p-3 rounded-circle">
+                    <i class="fa-solid fa-tractor fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white hover-lift">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold d-block mb-1">CROP CATALOG</span>
+                    <h3 class="fw-extrabold mb-0 text-dark">{{ total_crops }}</h3>
+                </div>
+                <div class="icon-circle bg-warning-subtle text-warning p-3 rounded-circle">
+                    <i class="fa-solid fa-wheat-awn fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white hover-lift">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold d-block mb-1">DISEASE CATALOG</span>
+                    <h3 class="fw-extrabold mb-0 text-dark">{{ total_diseases }}</h3>
+                </div>
+                <div class="icon-circle bg-danger-subtle text-danger p-3 rounded-circle">
+                    <i class="fa-solid fa-virus fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ML Performance & Audit Section -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+            <h4 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-microchip text-success me-2"></i> Local ML Model Status</h4>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Model Name</th>
+                            <th>Winner Algorithm</th>
+                            <th>Metric Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold">Crop Recommendation</td>
+                            <td><span class="badge bg-success-subtle text-success">Random Forest</span></td>
+                            <td>99.7% F1 Score</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Yield Regressor</td>
+                            <td><span class="badge bg-success-subtle text-success">Random Forest Regressor</span></td>
+                            <td>0.983 R² Score</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Disease Classifier</td>
+                            <td><span class="badge bg-success-subtle text-success">Random Forest Vision</span></td>
+                            <td>75.0% Accuracy</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Profit Regressor</td>
+                            <td><span class="badge bg-success-subtle text-success">Gradient Boosting</span></td>
+                            <td>0.998 R² Score</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+            <h4 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-shield-halved text-primary me-2"></i> Recent Security Audit Trail</h4>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in recent_logs %}
+                            <tr>
+                                <td class="text-muted small">{{ log.created_at.strftime('%H:%M:%S') }}</td>
+                                <td class="fw-bold">{{ log.user.username if log.user else 'System' }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ log.action }}</span></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Crop Disease Diagnosis — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-extrabold tracking-tight mb-1 text-dark">Crop Leaf Disease Detection</h2>
+        <p class="text-muted mb-0">Upload a leaf photo for instant offline Computer Vision diagnosis, treatment plan, and prevention steps.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h4 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-cloud-arrow-up text-success me-2"></i> Leaf Image Upload</h4>
+
+            <form method="POST" action="{{ url_for('farmer.disease_detection') }}" enctype="multipart/form-data">
+                <div class="mb-4">
+                    <label for="leaf_image" class="form-label fw-semibold">Upload Leaf Photo (PNG/JPG/JPEG) *</label>
+                    <input class="form-control" type="file" id="leaf_image" name="leaf_image" accept="image/*" required onchange="previewImage(event)">
+                </div>
+
+                <div id="imagePreviewContainer" class="text-center mb-4 d-none">
+                    <img id="imagePreview" src="#" alt="Leaf Preview" class="img-fluid rounded-4 shadow-sm max-h-200" style="max-height: 200px; object-fit: cover;">
+                </div>
+
+                <button type="submit" class="btn btn-emerald w-100 py-3 fw-bold rounded-pill">
+                    Diagnose Leaf Image <i class="fa-solid fa-bug ms-1"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        {% if detection %}
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-4 border-warning">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="text-muted small fw-semibold d-block">DIAGNOSED DISEASE</span>
+                        <h3 class="fw-bold text-dark mb-0">{{ detection.detected_disease }}</h3>
+                    </div>
+                    <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill">{{ detection.confidence_score }}% Confidence</span>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-eye text-primary me-2"></i> Observed Symptoms</h5>
+                <p class="text-muted bg-light p-3 rounded-3 mb-3">{{ detection.symptoms_observed }}</p>
+
+                <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-kit-medical text-danger me-2"></i> Recommended Treatment Plan</h5>
+                <p class="text-dark bg-success-subtle p-3 rounded-3 mb-0">{{ detection.treatment_plan }}</p>
+            </div>
+        {% else %}
+            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center text-muted h-100 d-flex align-items-center justify-content-center">
+                <div>
+                    <i class="fa-solid fa-camera-retro fs-1 text-warning mb-3"></i>
+                    <h4 class="fw-bold text-dark">Offline Vision Classifier Ready</h4>
+                    <p>Select and upload a crop leaf image on the left to run instantaneous local diagnosis.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function previewImage(event) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            const output = document.getElementById('imagePreview');
+            output.src = reader.result;
+            document.getElementById('imagePreviewContainer').classList.remove('d-none');
+        }
+        reader.readAsDataURL(event.target.files[0]);
+    }
+</script>
+{% endblock %}

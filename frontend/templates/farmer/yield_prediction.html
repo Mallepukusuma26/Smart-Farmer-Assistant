@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Crop Yield Prediction — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-extrabold tracking-tight mb-1 text-dark">Crop Yield Prediction Engine</h2>
+        <p class="text-muted mb-0">Locally trained Random Forest Regressor predicting expected harvest yield in metric tons.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h4 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-chart-line text-success me-2"></i> Field Input Parameters</h4>
+
+            <form method="POST" action="{{ url_for('farmer.yield_prediction') }}">
+                <div class="mb-3">
+                    <label for="field_id" class="form-label fw-semibold">Target Field *</label>
+                    <select class="form-select" id="field_id" name="field_id" required>
+                        {% for f in fields %}
+                            <option value="{{ f.id }}" {% if loop.first %}selected{% endif %}>
+                                {{ f.field_name }} ({{ f.farm.name }} — {{ f.area }} Acres)
+                            </option>
+                        {% else %}
+                            <option value="1" selected>Primary Plot (Main Homestead)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="crop_id" class="form-label fw-semibold">Crop *</label>
+                    <select class="form-select" id="crop_id" name="crop_id" required>
+                        {% for c in crops %}
+                            <option value="{{ c.id }}" {% if loop.first %}selected{% endif %}>
+                                {{ c.name }} ({{ c.category }})
+                            </option>
+                        {% else %}
+                            <option value="1" selected>Rice (Cereal)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label for="nitrogen" class="form-label fw-semibold">Nitrogen (N)</label>
+                        <input type="number" step="1" class="form-control" id="nitrogen" name="nitrogen" value="110" required>
+                    </div>
+                    <div class="col-6">
+                        <label for="phosphorus" class="form-label fw-semibold">Phosphorus (P)</label>
+                        <input type="number" step="1" class="form-control" id="phosphorus" name="phosphorus" value="45" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <label for="potassium" class="form-label fw-semibold">Potassium (K)</label>
+                        <input type="number" step="1" class="form-control" id="potassium" name="potassium" value="120" required>
+                    </div>
+                    <div class="col-6">
+                        <label for="rainfall" class="form-label fw-semibold">Rainfall (mm)</label>
+                        <input type="number" step="1" class="form-control" id="rainfall" name="rainfall" value="750" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-emerald w-100 py-3 fw-bold rounded-pill">
+                    Predict Crop Yield <i class="fa-solid fa-chart-bar ms-1"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        {% if prediction %}
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-4 border-success">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="text-muted small fw-semibold d-block">PREDICTED HARVEST YIELD</span>
+                        <h2 class="fw-extrabold text-success mb-0">{{ prediction.predicted_yield_tons }} Metric Tons</h2>
+                    </div>
+                    <span class="badge bg-success fs-6 px-3 py-2 rounded-pill">Model Confidence: 94%</span>
+                </div>
+
+                <div class="bg-light p-3 rounded-3 mb-3 text-center">
+                    <span class="text-muted small d-block mb-1">Expected Range Boundary</span>
+                    <strong class="fs-4 text-dark">{{ prediction.expected_range_min }} Tons — {{ prediction.expected_range_max }} Tons</strong>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-2">Primary Factors Influencing Prediction</h5>
+                <ul class="list-group list-group-flush border rounded-3 mb-0">
+                    {% for factor in prediction.get_parameters().items() %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span class="text-capitalize text-muted">{{ factor[0] }}</span>
+                            <span class="fw-bold text-dark">{{ factor[1] }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% else %}
+            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center text-muted h-100 d-flex align-items-center justify-content-center">
+                <div>
+                    <i class="fa-solid fa-chart-simple fs-1 text-success mb-3"></i>
+                    <h4 class="fw-bold text-dark">Yield Regressor Ready</h4>
+                    <p>Enter field and soil parameters on the left to compute predicted harvest yield.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

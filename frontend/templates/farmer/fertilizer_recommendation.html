@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Fertilizer Calculator — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-extrabold tracking-tight mb-1 text-dark">Fertilizer Dosage Recommendation</h2>
+        <p class="text-muted mb-0">Calculate precise NPK fertilizer requirements, application stage, and cost estimates.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h4 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-calculator text-success me-2"></i> Field & Crop Selection</h4>
+
+            <form method="POST" action="{{ url_for('farmer.fertilizer_recommendation') }}">
+                <div class="mb-3">
+                    <label for="field_id" class="form-label fw-semibold">Field Plot *</label>
+                    <select class="form-select" id="field_id" name="field_id" required>
+                        {% for f in fields %}
+                            <option value="{{ f.id }}" {% if loop.first %}selected{% endif %}>
+                                {{ f.field_name }} ({{ f.farm.name }} — {{ f.area }} Acres)
+                            </option>
+                        {% else %}
+                            <option value="1" selected>Primary Plot (Main Homestead)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="crop_id" class="form-label fw-semibold">Target Crop *</label>
+                    <select class="form-select" id="crop_id" name="crop_id" required>
+                        {% for c in crops %}
+                            <option value="{{ c.id }}" {% if loop.first %}selected{% endif %}>
+                                {{ c.name }} ({{ c.category }})
+                            </option>
+                        {% else %}
+                            <option value="1" selected>Maize (Cereal)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <label for="stage" class="form-label fw-semibold">Growth Stage</label>
+                        <select class="form-select" id="stage" name="stage">
+                            <option value="Basal / Sowing" selected>Basal / Sowing</option>
+                            <option value="Vegetative Growth">Vegetative Growth</option>
+                            <option value="Flowering / Tasseling">Flowering / Tasseling</option>
+                            <option value="Grain / Fruit Filling">Grain / Fruit Filling</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label for="area" class="form-label fw-semibold">Plot Area (Acres)</label>
+                        <input type="number" step="0.1" class="form-control" id="area" name="area" value="2.5" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-emerald w-100 py-3 fw-bold rounded-pill">
+                    Calculate Dosage <i class="fa-solid fa-flask ms-1"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        {% if rec %}
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-4 border-success">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="text-muted small fw-semibold d-block">RECOMMENDED FERTILIZER</span>
+                        <h3 class="fw-bold text-success mb-0">{{ rec.recommended_fertilizer }}</h3>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-success fs-5 px-3 py-2 rounded-pill">${{ rec.cost_estimate }} Total</span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4 text-center">
+                    <div class="col-6">
+                        <div class="bg-light p-3 rounded-3">
+                            <small class="text-muted d-block mb-1">Dosage per Acre</small>
+                            <strong class="fs-4 text-dark">{{ rec.quantity_kg_per_acre }} Kg/Acre</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-light p-3 rounded-3">
+                            <small class="text-muted d-block mb-1">Total Quantity Needed</small>
+                            <strong class="fs-4 text-dark">{{ rec.total_quantity_kg }} Kg</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-shield-halved text-success me-2"></i> Safety & Application Guidance</h5>
+                <p class="text-muted bg-light p-3 rounded-3 mb-0">{{ rec.safety_notes }}</p>
+            </div>
+        {% else %}
+            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center text-muted h-100 d-flex align-items-center justify-content-center">
+                <div>
+                    <i class="fa-solid fa-flask fs-1 text-success mb-3"></i>
+                    <h4 class="fw-bold text-dark">Fertilizer Calculator Ready</h4>
+                    <p>Select field and target crop to compute precise nutrient dosages.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

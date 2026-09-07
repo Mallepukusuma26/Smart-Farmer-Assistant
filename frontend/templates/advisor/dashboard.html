@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Advisor Dashboard — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-extrabold tracking-tight mb-1 text-dark">Agricultural Advisor Console</h2>
+        <p class="text-muted mb-0">Review assigned farmers, farm diagnoses, soil records, and issue advisory notes.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h4 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-users text-success me-2"></i> Assigned Farmers Directory</h4>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Farmer Name</th>
+                            <th>Region</th>
+                            <th>Land Area</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in farmers %}
+                            <tr>
+                                <td class="fw-bold text-dark">{{ f.full_name }}</td>
+                                <td>{{ f.region }}</td>
+                                <td>{{ f.total_land_area }} Acres</td>
+                                <td>
+                                    <a href="{{ url_for('advisor.farmer_view', farmer_id=f.id) }}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                        Review Profile <i class="fa-solid fa-arrow-right ms-1"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h4 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-bug text-warning me-2"></i> Recent Leaf Disease Cases</h4>
+            <div class="d-flex flex-column gap-3">
+                {% for dis in recent_diseases %}
+                    <div class="border rounded-3 p-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong class="text-dark">{{ dis.detected_disease }}</strong>
+                            <span class="badge bg-warning text-dark">{{ dis.confidence_score }}% Match</span>
+                        </div>
+                        <small class="text-muted d-block">Diagnosed on: {{ dis.created_at.strftime('%Y-%m-%d') }}</small>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No active disease cases reported.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Harvest Revenue Tracker — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-extrabold tracking-tight mb-1 text-dark">Harvest Revenue & Crop Sales</h2>
+        <p class="text-muted mb-0">Record harvest sales, buyer details, and calculate gross income.</p>
+    </div>
+    <button class="btn btn-emerald rounded-pill fw-bold px-4" data-bs-toggle="modal" data-bs-target="#addRevenueModal">
+        <i class="fa-solid fa-plus me-1"></i> Log Harvest Sale
+    </button>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-coins text-success me-2"></i> Harvest Sales Log</h4>
+        <span class="badge bg-success-subtle text-success fs-6">Gross Revenue: ${{ summary.total_revenue }}</span>
+    </div>
+
+    {% if revenues %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Crop</th>
+                        <th>Quantity Sold</th>
+                        <th>Price per Unit ($)</th>
+                        <th>Total Revenue ($)</th>
+                        <th>Buyer Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rev in revenues %}
+                        <tr>
+                            <td>{{ rev.sale_date.strftime('%Y-%m-%d') }}</td>
+                            <td class="fw-bold text-dark">{{ rev.crop.name if rev.crop else 'Crop' }}</td>
+                            <td>{{ rev.quantity_sold }} {{ rev.unit }}</td>
+                            <td>${{ rev.selling_price_per_unit }}</td>
+                            <td class="fw-bold text-success">${{ rev.total_revenue }}</td>
+                            <td class="text-muted">{{ rev.buyer_name or 'Direct Market' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-4 text-muted">
+            <p class="mb-0">No harvest sales recorded yet. Click "Log Harvest Sale" to add revenue.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Log Revenue Modal -->
+<div class="modal fade" id="addRevenueModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-plus-circle text-success me-2"></i> Log Harvest Sale</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('farmer.revenue') }}">
+                <div class="modal-body py-4">
+                    <div class="mb-3">
+                        <label for="crop_id" class="form-label fw-semibold">Harvested Crop *</label>
+                        <select class="form-select" id="crop_id" name="crop_id" required>
+                            {% for c in crops %}
+                                <option value="{{ c.id }}" {% if loop.first %}selected{% endif %}>
+                                    {{ c.name }} ({{ c.category }})
+                                </option>
+                            {% else %}
+                                <option value="1" selected>Maize (Cereal)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label for="quantity_sold" class="form-label fw-semibold">Quantity Sold *</label>
+                            <input type="number" step="0.1" class="form-control" id="quantity_sold" name="quantity_sold" required placeholder="e.g. 10.5">
+                        </div>
+                        <div class="col-6">
+                            <label for="unit" class="form-label fw-semibold">Unit</label>
+                            <select class="form-select" id="unit" name="unit">
+                                <option value="Tons" selected>Tons</option>
+                                <option value="Quintals">Quintals</option>
+                                <option value="Kg">Kg</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="selling_price" class="form-label fw-semibold">Selling Price per Unit ($) *</label>
+                        <input type="number" step="0.01" class="form-control" id="selling_price" name="selling_price" required placeholder="e.g. 350.00">
+                    </div>
+                    <div class="mb-3">
+                        <label for="buyer_name" class="form-label fw-semibold">Buyer Name / Company</label>
+                        <input type="text" class="form-control" id="buyer_name" name="buyer_name" placeholder="e.g. AgriGrain Logistics Corp">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-emerald rounded-pill px-4 fw-bold">Save Sale Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

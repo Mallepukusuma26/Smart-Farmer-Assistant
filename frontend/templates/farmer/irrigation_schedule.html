@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Irrigation Management — Smart Farmer Assistant{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-extrabold tracking-tight mb-1 text-dark">Irrigation Management & Water Log</h2>
+        <p class="text-muted mb-0">Evapotranspiration-based daily water requirement calculation and watering schedule.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h4 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-droplet text-success me-2"></i> Schedule Estimator</h4>
+
+            <form method="POST" action="{{ url_for('farmer.irrigation') }}">
+                <div class="mb-3">
+                    <label for="field_id" class="form-label fw-semibold">Field Plot *</label>
+                    <select class="form-select" id="field_id" name="field_id" required>
+                        {% for f in fields %}
+                            <option value="{{ f.id }}" {% if loop.first %}selected{% endif %}>
+                                {{ f.field_name }} ({{ f.farm.name }} — {{ f.area }} Acres)
+                            </option>
+                        {% else %}
+                            <option value="1" selected>Primary Plot (Main Homestead)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="crop_id" class="form-label fw-semibold">Current Crop</label>
+                    <select class="form-select" id="crop_id" name="crop_id">
+                        {% for c in crops %}
+                            <option value="{{ c.id }}" {% if c.name == 'Rice' or loop.first %}selected{% endif %}>
+                                {{ c.name }} ({{ c.season }})
+                            </option>
+                        {% else %}
+                            <option value="1" selected>Rice (Kharif)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label for="moisture" class="form-label fw-semibold">Soil Moisture %</label>
+                        <input type="number" step="0.1" class="form-control" id="moisture" name="moisture" value="22.0" required>
+                    </div>
+                    <div class="col-6">
+                        <label for="temperature" class="form-label fw-semibold">Temperature (°C)</label>
+                        <input type="number" step="0.1" class="form-control" id="temperature" name="temperature" value="28.0" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <label for="humidity" class="form-label fw-semibold">Humidity (%)</label>
+                        <input type="number" step="0.1" class="form-control" id="humidity" name="humidity" value="60.0" required>
+                    </div>
+                    <div class="col-6">
+                        <label for="rainfall" class="form-label fw-semibold">Recent Rainfall (mm)</label>
+                        <input type="number" step="1" class="form-control" id="rainfall" name="rainfall" value="0">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-emerald w-100 py-3 fw-bold rounded-pill">
+                    Generate Water Schedule <i class="fa-solid fa-droplet ms-1"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        {% if schedule %}
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-4 border-success mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="text-muted small fw-semibold d-block">NEXT SCHEDULED IRRIGATION</span>
+                        <h3 class="fw-bold text-success mb-0">{{ schedule.next_irrigation_date }}</h3>
+                    </div>
+                    <span class="badge bg-success fs-6 px-3 py-2 rounded-pill">{{ schedule.method }} System</span>
+                </div>
+
+                <div class="row g-3 text-center mb-3">
+                    <div class="col-4">
+                        <div class="bg-light p-3 rounded-3">
+                            <small class="text-muted d-block mb-1">Water Volume</small>
+                            <strong class="fs-5 text-dark">{{ schedule.water_required_liters }} L</strong>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="bg-light p-3 rounded-3">
+                            <small class="text-muted d-block mb-1">Frequency</small>
+                            <strong class="fs-5 text-dark">Every {{ schedule.frequency_days }} Days</strong>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="bg-light p-3 rounded-3">
+                            <small class="text-muted d-block mb-1">Duration</small>
+                            <strong class="fs-5 text-dark">{{ schedule.duration_minutes }} Mins</strong>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0"><strong>Agro-Climatic Rationale:</strong> {{ schedule.notes }}</p>
+            </div>
+        {% else %}
+            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center text-muted h-100 d-flex align-items-center justify-content-center">
+                <div>
+                    <i class="fa-solid fa-droplet fs-1 text-primary mb-3"></i>
+                    <h4 class="fw-bold text-dark">Irrigation Manager Ready</h4>
+                    <p>Enter temperature and soil moisture to generate an optimized watering schedule.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

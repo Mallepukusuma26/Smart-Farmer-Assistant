@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Smart Farmer Assistant — AI-Powered Precision Agriculture Platform{% endblock %}
+
+{% block content %}
+<div class="hero-section text-white py-5 px-4 mb-5 rounded-4 shadow-lg position-relative overflow-hidden" style="background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 60%, #081c15 100%);">
+    <div class="row align-items-center py-5 position-relative z-1">
+        <div class="col-lg-7 text-center text-lg-start ps-lg-5">
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold mb-3">
+                <i class="fa-solid fa-bolt me-1"></i> 100% Offline AI Platform — Zero Cloud API Key Required
+            </span>
+            <h1 class="display-3 fw-extrabold tracking-tight mb-3">
+                Smart Farmer <span class="text-success-emphasis">Assistant</span>
+            </h1>
+            <p class="lead text-white-50 mb-4 fs-4 pe-lg-5">
+                AI-Powered Crop, Soil, Fertilizer, Irrigation, Disease, Yield and Farm Profit Management System. Built with locally trained Machine Learning models.
+            </p>
+            <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-emerald btn-lg rounded-pill px-5 py-3 fw-bold shadow">
+                    Get Started Free <i class="fa-solid fa-arrow-right me-1"></i>
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg rounded-pill px-5 py-3 fw-semibold">
+                    Sign In
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-5 text-center mt-5 mt-lg-0 pe-lg-5">
+            <div class="glass-card p-4 rounded-4 shadow-lg border border-white-10 text-start text-white">
+                <h4 class="fw-bold mb-3 text-success-emphasis"><i class="fa-solid fa-microchip me-2"></i> Local ML Core Architecture</h4>
+                <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
+                    <li class="d-flex align-items-center gap-3">
+                        <div class="feature-icon bg-success-subtle text-success rounded-circle p-2"><i class="fa-solid fa-seedling"></i></div>
+                        <div>
+                            <strong class="d-block text-white">Crop Recommendation Engine</strong>
+                            <small class="text-white-50">Random Forest Classifier (99.7% Accuracy)</small>
+                        </div>
+                    </li>
+                    <li class="d-flex align-items-center gap-3">
+                        <div class="feature-icon bg-success-subtle text-success rounded-circle p-2"><i class="fa-solid fa-bug"></i></div>
+                        <div>
+                            <strong class="d-block text-white">Leaf Disease Diagnosis</strong>
+                            <small class="text-white-50">Computer Vision Feature Extraction & Random Forest</small>
+                        </div>
+                    </li>
+                    <li class="d-flex align-items-center gap-3">
+                        <div class="feature-icon bg-success-subtle text-success rounded-circle p-2"><i class="fa-solid fa-chart-line"></i></div>
+                        <div>
+                            <strong class="d-block text-white">Yield & Profit Regressor</strong>
+                            <small class="text-white-50">Multi-variable Regression (R² = 0.98)</small>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-4">
+    <!-- Key Feature Modules Grid -->
+    <div class="text-center mb-5">
+        <h2 class="fw-extrabold tracking-tight text-dark">Comprehensive Agricultural Management</h2>
+        <p class="text-secondary fs-5">All-in-one suite designed for Farmers, Agricultural Advisors, and Farm Managers</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Module 1: Soil Analysis -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift">
+                <div class="card-body">
+                    <div class="icon-box bg-success-subtle text-success rounded-3 p-3 d-inline-block mb-3">
+                        <i class="fa-solid fa-vial fs-3"></i>
+                    </div>
+                    <h4 class="card-title fw-bold">Soil Health Scoring</h4>
+                    <p class="card-text text-muted">Instant soil NPK, pH, Organic Carbon, and EC health scoring (0-100) with custom nutrient improvement plans.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 2: Crop Selection -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift">
+                <div class="card-body">
+                    <div class="icon-box bg-success-subtle text-success rounded-3 p-3 d-inline-block mb-3">
+                        <i class="fa-solid fa-seedling fs-3"></i>
+                    </div>
+                    <h4 class="card-title fw-bold">ML Crop Recommendation</h4>
+                    <p class="card-text text-muted">Locally trained Machine Learning classifier recommending top 3 suitable crops based on soil NPK, climate, and rainfall.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 3: Fertilizer Dosage -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift">
+                <div class="card-body">
+                    <div class="icon-box bg-success-subtle text-success rounded-3 p-3 d-inline-block mb-3">
+                        <i class="fa-solid fa-flask fs-3"></i>
+                    </div>
+                    <h4 class="card-title fw-bold">Fertilizer Calculator</h4>
+                    <p class="card-text text-muted">Nutrient deficit calculator recommending exact dosages (kg/acre), application stages, safety rules, and cost estimates.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 4: Irrigation Schedule -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift">
+                <div class="card-body">
+                    <div class="icon-box bg-success-subtle text-success rounded-3 p-3 d-inline-block mb-3">
+                        <i class="fa-solid fa-droplet fs-3"></i>
+                    </div>
+                    <h4 class="card-title fw-bold">Irrigation Manager</h4>
+                    <p class="card-text text-muted">Evapotranspiration-based daily water requirement calculation (Liters/acre), irrigation frequency, and next date alerts.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 5: Disease Detection -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift">
+                <div class="card-body">
+                    <div class="icon-box bg-success-subtle text-success rounded-3 p-3 d-inline-block mb-3">
+                        <i class="fa-solid fa-bug fs-3"></i>
+                    </div>
+                    <h4 class="card-title fw-bold">Offline Disease Diagnosis</h4>
+                    <p class="card-text text-muted">Upload crop leaf photos for instant offline Computer Vision diagnosis, symptoms identification, and treatment guidance.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 6: Financial Forecast -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift">
+                <div class="card-body">
+                    <div class="icon-box bg-success-subtle text-success rounded-3 p-3 d-inline-block mb-3">
+                        <i class="fa-solid fa-calculator fs-3"></i>
+                    </div>
+                    <h4 class="card-title fw-bold">Yield & Profit Regressor</h4>
+                    <p class="card-text text-muted">Predict expected harvest yield (tons/acre), total revenue, expenses, net profit, profit margin %, and break-even points.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
