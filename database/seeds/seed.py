@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from app import create_app
 from app.extensions import db
 from app.models import (
-    User, Farmer, Advisor, Farm, Field, SoilRecord, Crop, CropCycle,
+    User, Role, Farmer, Advisor, Farm, Field, SoilRecord, Crop, CropCycle,
     Fertilizer, Disease, DiseaseDetection, Expense, Revenue, Notification, AuditLog
 )
 
@@ -53,13 +53,19 @@ def seed_database():
         db.session.commit()
 
         print("Seeding user accounts (Admin, Advisor, Farmers)...")
+        role_farmer = Role(name='FARMER', description='Agricultural Farmer Role')
+        role_admin = Role(name='ADMIN', description='System Administrator Role')
+        role_advisor = Role(name='ADVISOR', description='Agricultural Advisor Role')
+        db.session.add_all([role_farmer, role_admin, role_advisor])
+        db.session.flush()
+
         # 1. Admin User
-        admin_user = User(username='admin', email='admin@smartfarmer.org', role='ADMIN')
+        admin_user = User(username='admin', email='admin@smartfarmer.org', role='ADMIN', role_id=role_admin.id)
         admin_user.set_password('admin123')
         db.session.add(admin_user)
 
         # 2. Agricultural Advisor
-        advisor_user = User(username='advisor_smith', email='advisor@smartfarmer.org', role='ADVISOR')
+        advisor_user = User(username='advisor_smith', email='advisor@smartfarmer.org', role='ADVISOR', role_id=role_advisor.id)
         advisor_user.set_password('advisor123')
         db.session.add(advisor_user)
         db.session.flush()
@@ -76,7 +82,7 @@ def seed_database():
         db.session.flush()
 
         # 3. Farmer User 1
-        farmer_user = User(username='john_farmer', email='john@smartfarmer.org', role='FARMER')
+        farmer_user = User(username='john_farmer', email='john@smartfarmer.org', role='FARMER', role_id=role_farmer.id)
         farmer_user.set_password('farmer123')
         db.session.add(farmer_user)
         db.session.flush()
